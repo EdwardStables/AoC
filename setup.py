@@ -53,10 +53,10 @@ with open("{day:02}/data.txt") as f:
 def main():
     args = get_args()
     do_gen = True
-    if args.problem is not None:
+    if args.problem:
         do_gen = False
         Popen(f"$BROWSER https://adventofcode.com/{args.year}/day/{args.day}", shell=True)        
-    if args.leaderboard is not None:
+    if args.leaderboard:
         do_gen = False
         Popen(f"$BROWSER https://adventofcode.com/{args.year}/leaderboard", shell=True)        
     if do_gen:
