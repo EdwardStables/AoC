@@ -6,18 +6,9 @@ def get_data(fname = "data.txt"):
 
 def main_a(data):
     WIDTH=len(data[0])
-
-    counters = [0 for _ in range(WIDTH)]
-
-    for num in data:
-        for i, v in enumerate(num):
-            if v == "1":
-                counters[i]+=1
-            else:
-                counters[i]-=1
-
-    gamma = int(''.join(["1" if c > 0 else "0" for c in counters]), base=2)
-    epsilon = int(''.join(["0" if c > 0 else "1" for c in counters]), base=2)
+    gamma = "".join([get_most_common_bit(data, i) for i in range(WIDTH)])
+    gamma = int(gamma, base=2)
+    epsilon = gamma ^ 0xfff
 
     return gamma * epsilon
 
@@ -56,8 +47,8 @@ def run_filt(data, common):
 
 def main_b(data):
     msb = get_most_common_bit(data, 0)
-    o2 = list(filter(lambda x: x[0] == msb, data))
-    co2 = list(filter(lambda x: not x[0] == msb, data))
+    o2 = filter(lambda x: x[0] == msb, data)
+    co2 = filter(lambda x: not x[0] == msb, data)
     o2_res = int(run_filt(o2, True), base=2)
     co2_res = int(run_filt(co2, False), base=2)
 
