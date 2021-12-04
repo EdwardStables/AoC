@@ -5,36 +5,34 @@ def get_data(fname = "data.txt"):
         return [l.strip() for l in f]
 
 def main_a(data):
-    data = [d.split() for d in data]
     depth = 0
     horizontal = 0
-    for (dir, amount) in data:
-        amount = int(amount)
-        if dir == "forward":
-            horizontal += amount
-        elif dir == "up":
-            depth -= amount
-        elif dir == "down":
-            depth += amount
+    for d in data:
+        v = int(d.split()[-1])
+        if d[0] == "f":
+            horizontal += v
+        elif d[0] == "u":
+            depth -= v
+        elif d[0] == "d":
+            depth += v
     
     return depth * horizontal
 
 def main_b(data):
-    data = [d.split() for d in data]
     depth = 0
     horizontal = 0
     aim = 0
-    for (dir, amount) in data:
-        amount = int(amount)
-        if dir == "forward":
-            horizontal += amount
-            depth += amount * aim
-        elif dir == "up":
-            aim -= amount
-        elif dir == "down":
-            aim += amount
+    for d in data:
+        v = int(d.split()[-1])
+        if d[0] == "f":
+            horizontal += v 
+            depth += v * aim
+        elif d[0] == "u":
+            aim -= v
+        elif d[0] == "d":
+            aim += v
 
-    return (depth*horizontal)
+    return depth*horizontal
 
 if __name__ == "__main__":
     data = get_data()
