@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-with open("a.txt") as f:
+with open("02/a.txt") as f:
     data = [l.split() for l in f]
 
 depth = 0
