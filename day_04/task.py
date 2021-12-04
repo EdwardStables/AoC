@@ -21,11 +21,8 @@ def check_board(board):
         if any([counter[i] == 5 for i in range(10)]):
             return True
 
-def main_a(data):
-    numbers = [int(d) for d in data[0].split(',')]
-
+def get_boards(data):
     boards = []
-
     new_board = {}
     row_count = 0
     for line in data[2:]:
@@ -38,39 +35,27 @@ def main_a(data):
                 new_board[int(v)] = [False, row_count, col]
             row_count += 1
     boards.append(new_board)
+    return boards
 
-    res = None
+def get_numbers(data):
+    return [int(d) for d in data[0].split(',')]
+
+def main_a(data):
+    numbers = get_numbers(data)
+    boards = get_boards(data)
+
     for n in numbers:
         for b in boards:
             if n in b:
                 b[n][0] = True
 
             if check_board(b):
-                res = get_score(b, n)
-                break
-
-        if res is not None:
-            return res
+                return get_score(b, n)
 
 def main_b(data):
-    numbers = [int(d) for d in data[0].split(',')]
+    numbers = get_numbers(data)
+    boards = get_boards(data)
 
-    boards = []
-
-    new_board = {}
-    row_count = 0
-    for line in data[2:]:
-        if line == "":
-            boards.append(new_board)
-            new_board = {}
-            row_count = 0
-        else:
-            for col, v in enumerate(line.split()):
-                new_board[int(v)] = [False, row_count, col]
-            row_count += 1
-    boards.append(new_board)
-
-    res = None
     for n in numbers:
         next_boards = []
         for b in boards:
