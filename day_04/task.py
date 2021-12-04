@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from time import time
 
 def get_data(fname = "data.txt"):
     with open(f"day_04/{fname}") as f:
@@ -45,36 +46,40 @@ def get_numbers(data):
 def main_a(data):
     numbers = get_numbers(data)
     boards = get_boards(data)
+    to_check = [0 for _ in range(len(boards))]
 
     for n in numbers:
-        for b in boards:
-            for i, c in enumerate(b):
+        for i, b in enumerate(boards):
+            for j, c in enumerate(b):
                 if c == n:
-                    b[i] = -1
+                    b[j] = -1
+                    to_check[i] += 1
 
-            if check_board(b):
+            if to_check[i] >= 5 and check_board(b):
                 return get_score(b, n)
 
 def main_b(data):
     numbers = get_numbers(data)
     boards = get_boards(data)
+    left_to_win = len(boards)
+    have_won = [False for _ in range(len(boards))]
+    to_check = [0 for _ in range(len(boards))]
 
     for n in numbers:
-        next_boards = []
-        for b in boards:
+        for j, b in enumerate(boards):
+            if have_won[j]:
+                continue
+            
             for i, c in enumerate(b):
                 if c == n:
                     b[i] = -1
-
-            if not check_board(b):
-                next_boards.append(b)
-            else:
-                last_board = b
-
-        boards = next_boards
-
-        if len(boards) == 0:
-            return get_score(last_board, n)
+                    to_check[j] += 1
+            
+            if to_check[j] >= 5 and check_board(b):
+                left_to_win -= 1
+                have_won[j] = True
+                if not left_to_win:
+                    return get_score(b, n)
 
 if __name__ == "__main__":
     data = get_data()
