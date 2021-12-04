@@ -5,6 +5,8 @@ from datetime import datetime as dt
 from os import mkdir, chmod, listdir
 from os.path import isdir, isfile, join
 from subprocess import Popen
+from collections import defaultdict
+import csv
 
 def get_session_id():
     with open("session.private") as f:
@@ -18,7 +20,9 @@ def get_args():
     parser.add_argument("--leaderboard", "-l", action="store_true", help="Open the leaderboard in the browser")
     parser.add_argument("--year", "-y", type=int, default=dt.now().year)
     parser.add_argument("--run", "-r", action="store_true", help="Run the given day and print answer + timing info (exc data loading)")
-    parser.add_argument("--regression", action="store_true", help="Like --run, but runs all days")
+    parser.add_argument("--regression", action="store_true", help="Like --run, but runs all days, saves a timestamped dataset")
+    parser.add_argument("--count", "-c", type=int, default=1, help="Sets number of tests to run for regression. Either whole regression c times, or single test c times if `-d` also given")
+
     return parser.parse_args()
 
 def get_data(day: int, year: int, session_id: str):
@@ -76,18 +80,81 @@ def run(day):
     b_res = module.task.main_b(data) 
     b_time = (time() - t1) * 1000
 
-    print(f"a: {a_time:07.3f}ms  {a_res}")
-    print(f"b: {b_time:07.3f}ms  {b_res}")
+    return [(a_time, a_res), (b_time, b_res)]
 
 def run_day(day):
     print(f"Day {day}")
-    run(day)
+    a, b = run(day)
+    print(f"a: {a[0]:07.3f}ms  {a[1]}")
+    print(f"b: {b[0]:07.3f}ms  {b[1]}")
 
-def run_regression():
+def run_regression(day=None, count=1):
     days = [int(d.split("_")[1]) for d in listdir(".") if d.startswith("day")]
     days.sort()
-    for d in days:
-        run_day(d)
+    results = defaultdict(list)
+    for _ in range(count):
+        for d in days:
+            if day is None or d==day:
+                a, b = run(d)
+                results[d].append((dt.now(), a[0], b[0], a[1], b[1]))
+
+    golden_ans = {k:(v["a answer"],v["b answer"]) for k, v in get_results().items()}
+
+    for day, res_list in results.items():
+        if day in golden_ans:
+            for res in res_list:
+                assert (r:=res[3]) == (g:=golden_ans[day][0]), f"Day {day} a result mismatch, got {r} expected {g}"
+                assert (r:=res[4]) == (g:=golden_ans[day][1]), f"Day {day} b result mismatch, got {r} expected {g}"
+
+    for day, res_list in results.items():
+        for res in res_list:
+            write_entry({
+                "DateTime" : res[0],
+                "Test" : day,
+                "a" : res[1],
+                "b" : res[2],
+                "a answer" : res[3],
+                "b answer" : res[4],
+            })
+
+def get_results_csv_header():
+    return ["DateTime","Test", "a", "b", "a answer", "b answer"]
+
+def write_entry(data):
+    header = get_results_csv_header()
+    assert header == read_csv("data/results.csv")[0]
+    row = [data[header] for header in header]
+    write_results(row)
+
+def write_results(row):
+    with open("data/results.csv", 'a') as f:
+        writer = csv.writer(f)
+        writer.writerow(row)
+
+def get_results():
+    csv_results = read_csv("data/results.csv")
+    if csv_results == None:
+        return {}
+
+    else:
+        #verify schema
+        header = get_results_csv_header()
+        assert header == csv_results[0]
+        results = { }
+        for res in csv_results[1:]:
+            result = {h:res[i] for i, h in enumerate(header)}
+            results[int(result["Test"])] = {k:float(v) if k != "DateTime" else v for k,v in result.items() if k != "Test"}
+
+    return results
+
+
+def read_csv(file):
+    if isfile(file):
+        with open(file) as f:
+            return [line for line in csv.reader(f)]
+
+    else:
+        return None
 
 def main():
     args = get_args()
@@ -105,9 +172,12 @@ def main():
     if args.run:
         if args.day == None:
             raise ArgumentError("Argument 'run' requires --day N argument")
-        run(args.day)
+        run_day(args.day)
     if args.regression:
-        run_regression()
+        if args.day is not None:
+            run_regression(day=args.day, count=args.count)
+        else:
+            run_regression(count=args.count)
 
 if __name__ == "__main__":
     main()
