@@ -6,34 +6,36 @@ def get_data(fname = "data.txt"):
 
 def get_score(board, num):
     total = 0
-    for cell, dat in board.items():
-        if not dat[0]:
-            total += cell
+    for b in board:
+        if b != -1:
+            total += b
 
     return total * num 
 
 def check_board(board):
-    cells = [(v[1],v[2]) for _, v in board.items() if v[0]]
-    counter = [0 for _ in range(10)]
-    for c in cells:
-        counter[c[0]] += 1
-        counter[c[1] + 5] += 1
-        if any([counter[i] == 5 for i in range(10)]):
+    #check rows
+    i = 0
+    j = 0
+    while i < 25:
+        if board[i] == board[i+1] == board[i+2] == board[i+3] == board[i+4] == -1:
             return True
+        if board[j] == board[j+5] == board[j+10] == board[j+15] == board[j+20] == -1:
+            return True
+        i += 5
+        j += 1
+
+    return False
 
 def get_boards(data):
     boards = []
-    new_board = {}
-    row_count = 0
+    new_board = []
     for line in data[2:]:
         if line == "":
             boards.append(new_board)
-            new_board = {}
-            row_count = 0
+            new_board = []
         else:
-            for col, v in enumerate(line.split()):
-                new_board[int(v)] = [False, row_count, col]
-            row_count += 1
+            for v in line.split():
+                new_board.append(int(v))
     boards.append(new_board)
     return boards
 
@@ -46,8 +48,9 @@ def main_a(data):
 
     for n in numbers:
         for b in boards:
-            if n in b:
-                b[n][0] = True
+            for i, c in enumerate(b):
+                if c == n:
+                    b[i] = -1
 
             if check_board(b):
                 return get_score(b, n)
@@ -59,8 +62,9 @@ def main_b(data):
     for n in numbers:
         next_boards = []
         for b in boards:
-            if n in b:
-                b[n][0] = True
+            for i, c in enumerate(b):
+                if c == n:
+                    b[i] = -1
 
             if not check_board(b):
                 next_boards.append(b)
