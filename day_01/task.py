@@ -7,10 +7,8 @@ def get_data(fname = "data.txt"):
 def main_a(data):
     data = [int(d) for d in data]
     increase = 0
-    for i, v in enumerate(data):
-        if i == 0:
-            continue
-        if data[i-1] < v:
+    for i in range(1, len(data)):
+        if data[i] > data[i-1]:
             increase += 1
 
     return increase
@@ -18,15 +16,10 @@ def main_a(data):
 def main_b(data):
     data = [int(d) for d in data]
     increase = 0
-    tri = lambda ind: sum(data[ind-2 : ind+1])
-    last_tri = tri(2)
-    for i, _ in enumerate(data):
-        if i in range(0, 3):
-            continue
-        new_tri = tri(i)
-        if  new_tri > last_tri:
+    for i in range(3, len(data)):
+        if data[i] > data[i-3]:
             increase += 1
-        last_tri = new_tri
+
     return increase
 
 if __name__ == "__main__":
