@@ -42,7 +42,7 @@ def create_script_template(file_path, day):
     template = f"""#!/usr/bin/env python3
 
 def get_data(fname = "data.txt"):
-    with open(f"day_04/{{fname}}") as f:
+    with open(f"day_{day:02}/{{fname}}") as f:
         return [l.strip() for l in f]
 
 def main_a(data):
