@@ -68,7 +68,7 @@ if __name__ == "__main__":
     chmod(file_path, 0o777)
 
 def run(day):
-    from time import time
+    from timeit import default_timer as time
     module = __import__(f"day_{day:02}.task")
 
     data = module.task.get_data()
