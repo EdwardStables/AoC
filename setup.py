@@ -22,6 +22,7 @@ def get_args():
     parser.add_argument("--run", "-r", action="store_true", help="Run the given day and print answer + timing info (exc data loading)")
     parser.add_argument("--regression", action="store_true", help="Like --run, but runs all days, saves a timestamped dataset")
     parser.add_argument("--count", "-c", type=int, default=1, help="Sets number of tests to run for regression. Either whole regression c times, or single test c times if `-d` also given")
+    parser.add_argument("--benchmark", action="store_true", help="Run timeit on the given day to get a good runtime. Excludes file loading")
 
     return parser.parse_args()
 
@@ -87,6 +88,24 @@ def run_day(day):
     a, b = run(day)
     print(f"a: {a[0]:07.3f}ms  {a[1]}")
     print(f"b: {b[0]:07.3f}ms  {b[1]}")
+
+def run_benchmark(day):
+    from timeit import timeit
+    from math import floor
+    module = __import__(f"day_{day:02}.task")
+    sample_time = run(day)
+    a_reps = floor(5000/sample_time[0][0])
+    b_reps = floor(5000/sample_time[1][0])
+
+    data = module.task.get_data()
+    a_time = 1000 * timeit(lambda: module.task.main_a(data), number = a_reps)/a_reps
+    data = module.task.get_data() 
+    b_time = 1000 * timeit(lambda: module.task.main_b(data), number = b_reps)/b_reps
+
+
+    print(f"Day {day} Benchmark")
+    print(f"a: {a_time:07.3f}ms  {a_reps} runs")
+    print(f"b: {b_time:07.3f}ms  {b_reps} runs")
 
 def run_regression(day=None, count=1):
     days = [int(d.split("_")[1]) for d in listdir(".") if d.startswith("day")]
@@ -162,22 +181,24 @@ def main():
         if args.day == None:
             raise ArgumentError("Argument 'problem' requires --day N argument")
         Popen(f"$BROWSER https://adventofcode.com/{args.year}/day/{args.day}", shell=True)        
-    if args.leaderboard:
+    elif args.leaderboard:
         Popen(f"$BROWSER https://adventofcode.com/{args.year}/leaderboard", shell=True)        
-    if args.build:
+    elif args.build:
         if args.day == None:
             raise ArgumentError("Argument 'build' requires --day N argument")
         data = get_data(args.day, args.year, get_session_id())
         create_template(args.day, data)
-    if args.run:
+    elif args.run:
         if args.day == None:
             raise ArgumentError("Argument 'run' requires --day N argument")
         run_day(args.day)
-    if args.regression:
+    elif args.regression:
         if args.day is not None:
             run_regression(day=args.day, count=args.count)
         else:
             run_regression(count=args.count)
+    elif args.benchmark:
+        run_benchmark(args.day)
 
 if __name__ == "__main__":
     main()
