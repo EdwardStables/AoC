@@ -10,19 +10,8 @@ def main(data, day_limit):
     for d in data:
         days[d] += 1
 
-    for _ in range(day_limit):
-        new_days = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-        new_days[8] = days[0]
-        new_days[0] = days[1]
-        new_days[1] = days[2]
-        new_days[2] = days[3]
-        new_days[3] = days[4]
-        new_days[4] = days[5]
-        new_days[5] = days[6]
-        new_days[6] = days[7]
-        new_days[7] = days[8]
-        new_days[6] += days[0]
-        days = new_days
+    for end_day in range(day_limit):
+        days[(end_day-2)%9] += days[end_day%9]
 
     return sum(days)
 
