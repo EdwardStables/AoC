@@ -11,7 +11,8 @@ def main(data, day_limit):
     days = [data.get(d,0) for d in "012345678"]
 
     for end_day in range(day_limit):
-        days[(end_day-2)%9] += days[end_day%9]
+        edm = end_day%9
+        days[edm-2] += days[edm]
 
     return sum(days)
 
