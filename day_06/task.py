@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
+from collections import Counter
 
 def get_data(fname = "data.txt"):
     with open(f"day_06/{fname}") as f:
         return [l.strip() for l in f]
 
+from timeit import default_timer as time
 def main(data, day_limit):
-    data = map(int,data[0].split(","))
-    days = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-    for d in data:
-        days[d] += 1
+    data = Counter(data[0].split(","))
+    days = [data.get(d,0) for d in "012345678"]
 
     for end_day in range(day_limit):
         days[(end_day-2)%9] += days[end_day%9]
