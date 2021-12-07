@@ -17,6 +17,13 @@ def tri(n):
     n = abs(n)
     return n*(n+1)//2
 
+def mean(arr):
+    mean = sum(arr) / len(arr)
+    if (imean := int(mean)) == mean:
+        return [imean]
+    else:
+        return [imean, imean + 1]
+
 def median(arr):
     start = 0
     end = len(arr)
@@ -26,25 +33,20 @@ def median(arr):
     else:
         return [int(arr[imed])]
 
-def main_a(data):
+def main(data, avg_func, fuel_func):
     h = [int(d) for d in data[0].split(",")]
     h.sort()
-    pos = median(h)
+    pos = avg_func(h)
     if len(pos) == 1:
-        return get_fuel(h, pos[0])
+        return fuel_func(h, pos[0])
     else:
-        return min(get_fuel(h, pos[0]),get_fuel(h, pos[1]))
+        return min(fuel_func(h, pos[0]),fuel_func(h, pos[1]))
+
+def main_a(data):
+    return main(data, median, get_fuel)
 
 def main_b(data):
-    h = [int(d) for d in data[0].split(",")]
-    start = min(h)
-    stop = max(h)
-    min_fuel = get_fuel_exp(h, start)
-    for f in range(start+1, stop+1):
-        if (new_min := get_fuel_exp(h, f)) < min_fuel:
-            min_fuel = new_min 
-        else:
-            return min_fuel
+    return main(data, mean, get_fuel_exp)
 
 if __name__ == "__main__":
     data = get_data()
