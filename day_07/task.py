@@ -15,10 +15,7 @@ def get_fuel_exp(data, pos):
 
 def tri(n):
     n = abs(n)
-    t = 0
-    for i in range(1, n+1):
-        t += i
-    return t
+    return n*(n+1)//2
 
 def main(data,fuel_func):
     h = [int(d) for d in data[0].split(",")]
