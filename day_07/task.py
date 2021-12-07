@@ -17,22 +17,34 @@ def tri(n):
     n = abs(n)
     return n*(n+1)//2
 
-def main(data,fuel_func):
+def median(arr):
+    start = 0
+    end = len(arr)
+    med = (start + end) / 2
+    if (imed := int(med)) != med:
+        return [arr[imed], arr[imed+1]]
+    else:
+        return [int(arr[imed])]
+
+def main_a(data):
+    h = [int(d) for d in data[0].split(",")]
+    h.sort()
+    pos = median(h)
+    if len(pos) == 1:
+        return get_fuel(h, pos[0])
+    else:
+        return min(get_fuel(h, pos[0]),get_fuel(h, pos[1]))
+
+def main_b(data):
     h = [int(d) for d in data[0].split(",")]
     start = min(h)
     stop = max(h)
-    min_fuel = fuel_func(h, start)
+    min_fuel = get_fuel_exp(h, start)
     for f in range(start+1, stop+1):
-        if (new_min := fuel_func(h, f)) < min_fuel:
+        if (new_min := get_fuel_exp(h, f)) < min_fuel:
             min_fuel = new_min 
         else:
             return min_fuel
-
-def main_a(data):
-    return main(data, get_fuel)
-
-def main_b(data):
-    return main(data, get_fuel_exp)
 
 if __name__ == "__main__":
     data = get_data()
