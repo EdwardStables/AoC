@@ -25,8 +25,8 @@ def main(data,fuel_func):
     for f in range(start+1, stop+1):
         if (new_min := fuel_func(h, f)) < min_fuel:
             min_fuel = new_min 
-
-    return min_fuel
+        else:
+            return min_fuel
 
 def main_a(data):
     return main(data, get_fuel)
