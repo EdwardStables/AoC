@@ -25,20 +25,8 @@ def main_a(data):
 def main_b(data):
     sum = 0
     for line in data:
-        segs = {
-            "a" : "",
-            "b" : "",
-            "c" : "",
-            "d" : "",
-            "e" : "",
-            "f" : "",
-            "g" : ""
-        }
 
-        nums = {
-            
-        }
-
+        nums = {}
         digs = get_all_digits(line)
         for d in digs:
             if 1 not in nums and len(d) == 2:
@@ -50,37 +38,27 @@ def main_b(data):
             elif 8 not in nums and len(d) == 7:
                 nums[8] = set(d)
 
-        #0: use 1 and 7 to find d
-        segs['d'] = (nums[7]-nums[1]).pop()
-
-        #1 use 1 to find 0 and 6
         nums[6] = [n for d in digs if len(d)==6 and not nums[1].issubset(n := set(d))][0]
 
-
-        #3 use 6 and 1 to find a, b
-        segs['a'] = (nums[1] - nums[6]).pop()
-        segs['b'] = (nums[1] - set(segs['a'])).pop()
+        a = (nums[1] - nums[6]).pop()
+        b = (nums[1] - set(a)).pop()
 
         for d in digs:
-            if len(d) != 6:
-                continue
-            n = set(d)
-            if n == nums[6]:
-                continue
-            elif len(n - nums[4]) == 2:
-                nums[9] = n
-            else:
-                nums[0] = n
-
-        for d in digs:
-            if len(d) != 5:
-                continue
-            if segs['b'] not in d:
-                nums[2] = set(d)
-            elif segs['a'] not in d:
-                nums[5] = set(d)
-            else:
-                nums[3] = set(d)
+            if len(d) == 6:
+                n = set(d)
+                if n == nums[6]:
+                    continue
+                elif len(n - nums[4]) == 2:
+                    nums[9] = n
+                else:
+                    nums[0] = n
+            elif len(d) == 5:
+                if b not in d:
+                    nums[2] = set(d)
+                elif a not in d:
+                    nums[5] = set(d)
+                else:
+                    nums[3] = set(d)
 
         nums = {''.join(sorted(v)) : k for k, v in nums.items()}
 
