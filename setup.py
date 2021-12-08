@@ -20,6 +20,7 @@ def get_args():
     parser.add_argument("--leaderboard", "-l", action="store_true", help="Open the leaderboard in the browser")
     parser.add_argument("--year", "-y", type=int, default=dt.now().year)
     parser.add_argument("--run", "-r", action="store_true", help="Run the given day and print answer + timing info (exc data loading)")
+    parser.add_argument("--test", "-t", action="store_true", help="Run the given day with input of 'test.txt'")
     parser.add_argument("--regression", action="store_true", help="Like --run, but runs all days, saves a timestamped dataset")
     parser.add_argument("--count", "-c", type=int, default=1, help="Sets number of tests to run for regression. Either whole regression c times, or single test c times if `-d` also given")
     parser.add_argument("--benchmark", action="store_true", help="Run timeit on the given day to get a good runtime. Excludes file loading")
@@ -68,24 +69,24 @@ if __name__ == "__main__":
 
     chmod(file_path, 0o777)
 
-def run(day):
+def run(day,fname="data.txt"):
     from timeit import default_timer as time
     module = __import__(f"day_{day:02}.task")
 
-    data = module.task.get_data()
+    data = module.task.get_data(fname=fname)
     t1 = time()
     a_res = module.task.main_a(data) 
     a_time = (time() - t1) * 1000
-    data = module.task.get_data() 
+    data = module.task.get_data(fname=fname) 
     t1 = time()
     b_res = module.task.main_b(data) 
     b_time = (time() - t1) * 1000
 
     return [(a_time, a_res), (b_time, b_res)]
 
-def run_day(day):
-    print(f"Day {day}")
-    a, b = run(day)
+def run_day(day, fname="data.txt"):
+    print(f"Day {day} {'(test)' if fname != 'data.txt' else ''}")
+    a, b = run(day, fname=fname)
     print(f"a: {a[0]:07.3f}ms  {a[1]}")
     print(f"b: {b[0]:07.3f}ms  {b[1]}")
 
@@ -192,6 +193,10 @@ def main():
         if args.day == None:
             raise ArgumentError("Argument 'run' requires --day N argument")
         run_day(args.day)
+    elif args.test:
+        if args.day == None:
+            raise ArgumentError("Argument 'run' requires --day N argument")
+        run_day(args.day, fname="test.txt")
     elif args.regression:
         if args.day is not None:
             run_regression(day=args.day, count=args.count)
