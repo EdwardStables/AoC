@@ -17,9 +17,9 @@ def is_corrupt(line):
     lq = deque()
     for c in line:
         if c in "([<{":
-            lq.append(c)
+            lq.appendleft(c)
         else:
-            open = lq.pop()
+            open = lq.popleft()
             exp_close = pairs[open]
             if c != exp_close:
                 return (True, c, None)
@@ -56,7 +56,7 @@ def main_b(data):
 
         while len(queue) > 0:
             new_score *= 5
-            new_score += scores[pairs[queue.pop()]]
+            new_score += scores[pairs[queue.popleft()]]
         
         insort(score_list, new_score)
 
