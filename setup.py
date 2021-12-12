@@ -42,6 +42,9 @@ def create_template(day: int, data: str):
     with open(join(name, "data.txt"), 'w') as f:
         f.writelines(data.text)
 
+    with open(join(name, "test.txt"), 'w') as f:
+        pass
+
     if not isfile(file_path := join(name, "task.py")):
         create_script_template(file_path, day)
 
