@@ -6,10 +6,9 @@ def get_data(fname = "data.txt"):
         return [l.strip() for l in f]
 
 class Node:
-    def __init__(self, name, isSmall, isStart=False, isEnd=False):
+    def __init__(self, name, isBig):
         self.name = name
-        self.small = isSmall
-        self.big = not isSmall
+        self.big = isBig
         self.connections = []
 
     def __repr__(self):
@@ -23,7 +22,7 @@ def build(data):
         node_names.add(fs[0])
         node_names.add(fs[1])
 
-    nodes = {node : Node(node, node.islower(), isStart=node=="start", isEnd=node=="end") for node in node_names}
+    nodes = {node : Node(node, node.isupper()) for node in node_names}
 
     for line in data:
         fs = line.split("-")
@@ -32,16 +31,6 @@ def build(data):
 
     return nodes
 
-def step_unique(paths,graph):
-    new_paths = []
-    for path in paths:
-        cons = graph[path[-1]].connections
-        for c in cons:
-            if (c.big and c.name in path) or (c.name not in path):
-                new_path = [p for p in path]
-                new_path.append(c.name)
-                new_paths.append(new_path)
-    return new_paths
 
 def step_small_twice(paths,graph):
     new_paths = []
@@ -68,6 +57,16 @@ def step_small_twice(paths,graph):
                 new_paths.append(new_path)
     return new_paths
 
+def step_unique(paths,graph):
+    new_paths = []
+    for path in paths:
+        cons = graph[path[-1]].connections
+        for c in cons:
+            if (c.big and c.name in path) or (c.name not in path):
+                new_path = [p for p in path]
+                new_path.append(c.name)
+                new_paths.append(new_path)
+    return new_paths
 
 def main(data, step_func):
     graph = build(data)
@@ -79,7 +78,7 @@ def main(data, step_func):
             break
         in_progress_paths = []
         for p in next_paths:
-            if p[0] == "start" and p[-1] == "end":
+            if p[-1] == "end":
                 path_count += 1
             else:
                 in_progress_paths.append(p)
