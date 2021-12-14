@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from time import time
 from collections import Counter, defaultdict
 
 def get_data(fname = "data.txt"):
@@ -17,18 +18,15 @@ def get_pairs(inp):
         pairs.append(inp[i:i+2])
     return pairs
 
-
 def main(data, step_limit):
     start, pair_list = parse(data)
-    pairs = defaultdict(int)
-
-    table = { k : 0 for k in pair_list }
+    table = defaultdict(int)
 
     for p in get_pairs(start):
         table[p] += 1
 
     for _ in range(step_limit):
-        next_table = { k : 0 for k in pair_list }
+        next_table = defaultdict(int)
         for k, v in table.items():
             next_table[pair_list[k][0]] += v
             next_table[pair_list[k][1]] += v
@@ -42,8 +40,8 @@ def main(data, step_limit):
     prots[start[0]] += 1
     prots[start[-1]] += 1
 
-    prot_count = sorted(v//2 for k,v in prots.items())
-    return prot_count[-1] - prot_count[0]
+    prot_count = sorted(prots.values())
+    return (prot_count[-1] - prot_count[0])//2
 
 def main_a(data):
     return main(data, 10)
