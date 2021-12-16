@@ -5,9 +5,6 @@ def get_data(fname = "data.txt"):
     with open(f"day_16/{fname}") as f:
         return [l.strip() for l in f]
 
-def as_bits(packet):
-    return bin(int(packet, base=16))[2:]
-
 def b2d(num):
     return int(num,base=2)
 
@@ -78,8 +75,6 @@ class Packet:
         else:
             str += f"\nID: {len(self.ID)}"
             str += f"\nNum sub: {len(self.sub_packets)}"
-
-
         return str
 
     def parse(self):
