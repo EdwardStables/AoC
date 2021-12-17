@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
 from math import sqrt, ceil, floor
+from time import time
 
 def get_data(fname = "data.txt"):
     with open(f"day_17/{fname}") as f:
         return [l.strip() for l in f]
 
 def step(px, py, vx, vy):
-    px += vx
-    py += vy
-    vx = max(vx-1,0)
-    vy -= 1
-    return px, py, vx, vy
+    return px+vx, py+vy, max(vx-1,0), vy-1
 
 def get_target(inp):
     s = inp[0].split(", ")
@@ -34,23 +31,19 @@ def calc_x_range(xlow, xhigh):
 
 def main_b(data):
     xlow, xhigh, ylow, yhigh = get_target(data)
-    count = 0
-    trial_count = 0
-
     xmin, xmax = calc_x_range(xlow, xhigh)
     ymin, ymax = ylow, -ylow
 
+    count = 0
     for x in range(xmin, xmax+1):
         for y in range(ymin, ymax):
-            trial_count += 1
-            px, py = 0, 0
-            vx = x
-            vy = y
+            px, py, vx, vy = 0, 0, x, y
             while py > ylow and px < xhigh:
                 px, py, vx, vy = step(px, py, vx, vy) 
                 if xlow <= px <= xhigh and ylow <= py <= yhigh:
                     count += 1
                     break
+
     return count
 
 if __name__ == "__main__":
