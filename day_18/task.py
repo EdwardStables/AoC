@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from math import floor, ceil
+from copy import deepcopy
 
 def get_data(fname = "data.txt"):
     with open(f"day_18/{fname}") as f:
@@ -73,27 +74,38 @@ def magnitude(num):
         b = magnitude(b)
     return 3*a + 2*b
 
+def reduce(num):
+    while True:
+        if explode(num):
+            continue
+        if split(num):
+            continue
+        break
+    return num
+
 def main_a(data):
     data = parse(data)
     active = data[0]
     next = 1
     
     while next < len(data):
-        #append 
-        active = [active, data[next]]
-        #reduce
-        while True:
-            if explode(active):
-                continue
-            if split(active):
-                continue
-            break
+        active = reduce([active, data[next]])
         next += 1
 
     return magnitude(active)
 
 def main_b(data):
-    return 0
+    data = parse(data)
+    max_mag = 0
+
+    for i in range(len(data)):
+        for j in range(len(data)):
+            if i == j:
+                continue
+            max_mag = max(max_mag, magnitude(reduce([deepcopy(data[i]), deepcopy(data[j])])))
+        
+
+    return max_mag 
 
 if __name__ == "__main__":
     data = get_data()
