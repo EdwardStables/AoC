@@ -101,17 +101,42 @@ def rotate(mat, beacon):
     rot_count+=1
     return [mat_vec_mult(mat, s) for s in beacon]
 
-def check_offset_intersection(new_points, points):
+new_point_ind = 0
+def check_offset_intersection_a(new_points, points):
+    global new_point_ind
+    new_point_ind %= len(new_points)
     for i, base in enumerate(points):
         matched = 0
-        offset = base - new_points[randint(0,len(new_points)-1)]
+        offset = base - new_points[new_point_ind]
         new_points = [p+offset for p in new_points]
         for p in new_points:
             if p in points:
                 matched += 1
                 if matched >= 12:
-                    return new_points 
-    return False
+                    new_point_ind = 0
+                    return new_points, offset
+    new_point_ind += 1
+    return False, None
+
+new_point_ind_b = 0
+def check_offset_intersection_b(new_points, points):
+    global new_point_ind_b
+    new_point_ind_b %= len(new_points)
+    for i, beacon in enumerate(points):
+        if beacon is None:
+            continue
+        for base in beacon:
+            matched = 0
+            offset = base - new_points[new_point_ind_b]
+            offset_new_points = [p+offset for p in new_points]
+            for p in offset_new_points:
+                if p in beacon:
+                    matched += 1
+                    if matched >= 12:
+                        new_point_ind_b = 0
+                        return offset_new_points, offset, i
+    new_point_ind_b += 1
+    return False, None, None
 
 def main_a(data):
     data = parse(data)
@@ -123,17 +148,43 @@ def main_a(data):
             if i in done:
                 continue
             for r in get_rots():
-                points = check_offset_intersection(rotate(r,beacon),scanners)
+                points, _ = check_offset_intersection_a(rotate(r,beacon),scanners)
                 if points:
                     done.append(i)
                     scanners.update(points)
         if len(done) == len(data):
             break
-        
+
     return len(scanners)
 
 def main_b(data):
-    return 0
+    data = parse(data)
+    done = set([0])
+    offsets = [Point(0,0,0)] + [None] * (len(data)-1)
+    scanner_to_beacon = [set(data[0])] + [None]*(len(data)-1)
+
+    while True:
+        for i, beacon in enumerate(data):
+            if i in done:
+                continue
+            for r in get_rots():
+                points, offset, rel = check_offset_intersection_b(rotate(r,beacon),scanner_to_beacon)
+                if points:
+                    print(f"setting {i} with offset {offset} relative to {rel} with offset {offsets[rel]}")
+                    offsets[i] = offset + offsets[rel]
+                    done.add(i)
+                    scanner_to_beacon[i] = points
+        if len(done) == len(data):
+            break
+
+    max_dist = 0
+    print(offsets)
+    for o1 in offsets:
+        for o2 in offsets:
+            if o2 == o1:
+                continue
+            max_dist = max((o1.x - o2.x) + (o1.y - o2.y) + (o1.z - o2.z), max_dist)
+    return max_dist
 
 if __name__ == "__main__":
     data = get_data()
