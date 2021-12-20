@@ -171,7 +171,7 @@ def main_b(data):
                 points, offset, rel = check_offset_intersection_b(rotate(r,beacon),scanner_to_beacon)
                 if points:
                     print(f"setting {i} with offset {offset} relative to {rel} with offset {offsets[rel]}")
-                    offsets[i] = offset + offsets[rel]
+                    offsets[i] = offset 
                     done.add(i)
                     scanner_to_beacon[i] = points
         if len(done) == len(data):
