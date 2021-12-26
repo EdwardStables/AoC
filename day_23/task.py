@@ -37,12 +37,16 @@ class Board:
             self.corridor[i] = p if p != '.' else None
 
         room_depth = len(board_str) - 3
+        print(room_depth)
 
         for d in range(room_depth):
             for r in range(4):
-                print(board_str[d+2], 3+2*r)
-        
-                p = board_str[d+2][3+2*r]
+                if board_str[d+2].startswith("###"):
+                    ln = board_str[d+2][2:]
+                else:
+                    ln = board_str[d+2]
+                p = ln[1+2*r]
+                print(p)
                 self.room_from_ind(r+1)[d] =  p if p != '.' else None
 
     def __repr__(self):
@@ -52,8 +56,10 @@ class Board:
         r4 = [r if r is not None else '.' for r in self.room4 ]
         out = "#############\n"
         out += f"#{''.join(['.' if n == None else n for n in self.corridor])}#\n"
+
         out += f"###{r1[0]}#{r2[0]}#{r3[0]}#{r4[0]}###\n"
-        out += f"  #{r1[1]}#{r2[1]}#{r3[1]}#{r4[1]}#\n"
+        for i in range(1, len(r1)):
+            out += f"  #{r1[i]}#{r2[i]}#{r3[i]}#{r4[i]}#\n"
         out += f"  #########\n"
         return out
 
@@ -84,11 +90,11 @@ def diff(b1: Board, b2:Board):
     first_pos_pos = 0
     room_second_pos = None
     second_pos_pos = 0
+
     if b1.corridor_count() != b2.corridor_count():
         for i, (c1, c2) in enumerate(zip(b1.corridor, b2.corridor)):
             if c1 != c2:
                 corridor_pos = i
-
     
     for i in range(1,5):
         if (b1rc := b1.room_count(i)) != (b2rc := b2.room_count(i)):
@@ -129,6 +135,7 @@ def diff(b1: Board, b2:Board):
     return moves, diff_piece
     
 def main_a(data):
+    return 0
     costs = {
         "A" : 1,
         "B" : 10,
@@ -143,7 +150,7 @@ def main_a(data):
                 boards.append(Board(board))
                 board = []
             else:
-                board.append(l)
+                board.append(l.strip())
         boards.append(Board(board))
         
     cost = 0
@@ -154,10 +161,12 @@ def main_a(data):
     return cost
 
 def read_b(data):
-    return data[0:3] + ["   #D#C#B#A#","   #D#B#A#C#"] + ["   " + d for d in data[3:]]
+    return data[0:3] + ["#D#C#B#A#","#D#B#A#C#"] + data[3:]
 
 def main_b(data):
-    start_board = Board(read_b(data))
+    data = read_b(data)
+    start_board = Board(data)
+    print(start_board)
     return 0
 
 if __name__ == "__main__":
