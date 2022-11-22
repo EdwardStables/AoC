@@ -3,7 +3,7 @@ from collections import deque
 from bisect import insort
 
 def get_data(fname = "data.txt"):
-    with open(f"day_10/{fname}") as f:
+    with open(f"year_2021/day_10/{fname}") as f:
         return [l.strip() for l in f]
 
 pairs = {

@@ -23,7 +23,7 @@ class Point:
                 (self.x == other.x and self.y == other.y and self.z < other.z)
 
 def get_data(fname = "data.txt"):
-    with open(f"day_19/{fname}") as f:
+    with open(f"year_2021/day_19/{fname}") as f:
         return [l.strip() for l in f]
 
 def parse(data):

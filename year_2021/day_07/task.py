@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from math import floor, ceil
 def get_data(fname = "data.txt"):
-    with open(f"day_07/{fname}") as f:
+    with open(f"year_2021/day_07/{fname}") as f:
         return [l.strip() for l in f]
 
 def get_fuel(data, pos):

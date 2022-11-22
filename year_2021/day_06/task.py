@@ -2,7 +2,7 @@
 from collections import Counter
 
 def get_data(fname = "data.txt"):
-    with open(f"day_06/{fname}") as f:
+    with open(f"year_2021/day_06/{fname}") as f:
         return [l.strip() for l in f]
 
 from timeit import default_timer as time

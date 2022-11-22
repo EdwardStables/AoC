@@ -3,7 +3,7 @@ from time import time
 from collections import Counter, defaultdict
 
 def get_data(fname = "data.txt"):
-    with open(f"day_14/{fname}") as f:
+    with open(f"year_2021/day_14/{fname}") as f:
         return [l.strip() for l in f]
 
 def parse(data):

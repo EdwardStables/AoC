@@ -3,7 +3,7 @@ from math import floor, ceil
 from copy import deepcopy
 
 def get_data(fname = "data.txt"):
-    with open(f"day_18/{fname}") as f:
+    with open(f"year_2021/day_18/{fname}") as f:
         return [l.strip() for l in f]
 
 class Node:
