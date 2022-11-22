@@ -1,3 +1,4 @@
 session.private
 *.pyc
 data/results.csv
+.wsl

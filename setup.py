@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from pathlib import Path
 from argparse import ArgumentError, ArgumentParser
 from requests import get
 from datetime import datetime as dt
@@ -179,14 +180,20 @@ def read_csv(file):
     else:
         return None
 
+def open_page(url):
+    if Path(".wsl").exists():
+        print(url)
+    else:
+        Popen(f"$BROWSER {url}", shell=True)        
+
 def main():
     args = get_args()
     if args.problem:
         if args.day == None:
             raise ArgumentError("Argument 'problem' requires --day N argument")
-        Popen(f"$BROWSER https://adventofcode.com/{args.year}/day/{args.day}", shell=True)        
+        open_page(f"https://adventofcode.com/{args.year}/day/{args.day}")
     elif args.leaderboard:
-        Popen(f"$BROWSER https://adventofcode.com/{args.year}/leaderboard", shell=True)        
+        open_page(f"https://adventofcode.com/{args.year}/leaderboard")        
     elif args.build:
         if args.day == None:
             raise ArgumentError("Argument 'build' requires --day N argument")
