@@ -34,7 +34,7 @@ def get_data(day: int, year: int, session_id: str):
 
 def create_template(day: int, year:int, data: str):
     t_dir = Path("year_"+str(year)) / f"day_{day:02}"
-    if t_dir.isdir():
+    if t_dir.is_dir():
         print("Target directory already exists")
         return 
 
