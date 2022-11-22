@@ -32,24 +32,27 @@ def get_data(day: int, year: int, session_id: str):
     cookies = {"session" : session_id}
     return get(f"https://adventofcode.com/{year}/day/{day}/input", cookies=cookies)
 
-def create_template(day: int, data: str):
-    name = f"day_{day:02}"
-    if isdir(name):
+def create_template(day: int, year:int, data: str):
+    t_dir = Path("year_"+str(year)) / f"day_{day:02}"
+    if t_dir.isdir():
         print("Target directory already exists")
         return 
 
-    mkdir(name)
+    t_dir.mkdir(parents=True)
 
-    with open(join(name, "data.txt"), 'w') as f:
+    with (t_dir/"data.txt").open('w') as f:
         f.writelines(data.text)
 
-    with open(join(name, "test.txt"), 'w') as f:
+    with (t_dir/"test.txt").open('w') as f:
         pass
 
-    if not isfile(file_path := join(name, "task.py")):
+    if not (p := t_dir/"task.py").exists():
+        create_script_template(p, day)
+
+    if not isfile(file_path := join(t_dir, "task.py")):
         create_script_template(file_path, day)
 
-def create_script_template(file_path, day):
+def create_script_template(file_path: Path, day):
     template = f"""#!/usr/bin/env python3
 
 def get_data(fname = "data.txt"):
@@ -68,36 +71,36 @@ if __name__ == "__main__":
     data = get_data()
     print(main_b(data))"""
 
-    with open(file_path, 'w') as f:
+    with file_path.open('w') as f:
         f.write(template)
+    file_path.chmod(0o777)
 
-    chmod(file_path, 0o777)
-
-def run(day,fname="data.txt"):
+def run(day, year, fname="data.txt"):
     from timeit import default_timer as time
-    module = __import__(f"day_{day:02}.task")
+    module = __import__(f"year_{year}.day_{day:02}.task")
+    task = getattr(module, f"day_{day:02}").task
 
-    data = module.task.get_data(fname=fname)
+    data = task.get_data(fname=fname)
     t1 = time()
-    a_res = module.task.main_a(data) 
+    a_res = task.main_a(data) 
     a_time = (time() - t1) * 1000
-    data = module.task.get_data(fname=fname) 
+    data = task.get_data(fname=fname) 
     t1 = time()
-    b_res = module.task.main_b(data) 
+    b_res = task.main_b(data) 
     b_time = (time() - t1) * 1000
 
     return [(a_time, a_res), (b_time, b_res)]
 
-def run_day(day, fname="data.txt"):
-    print(f"Day {day} {'(test)' if fname != 'data.txt' else ''}")
-    a, b = run(day, fname=fname)
+def run_day(day, year, fname="data.txt"):
+    print(f"Year {year} Day {day} {'(test)' if fname != 'data.txt' else ''}")
+    a, b = run(day, year, fname=fname)
     print(f"a: {a[0]:07.3f}ms  {a[1]}")
     print(f"b: {b[0]:07.3f}ms  {b[1]}")
 
-def run_benchmark(day):
+def run_benchmark(day, year):
     from timeit import timeit
     from math import floor
-    module = __import__(f"day_{day:02}.task")
+    module = __import__(f"year_{year}.day_{day:02}.task")
     sample_time = run(day)
     a_reps = floor(5000/sample_time[0][0])
     b_reps = floor(5000/sample_time[1][0])
@@ -108,12 +111,12 @@ def run_benchmark(day):
     b_time = 1000 * timeit(lambda: module.task.main_b(data), number = b_reps)/b_reps
 
 
-    print(f"Day {day} Benchmark")
+    print(f"Year {year} Day {day} Benchmark")
     print(f"a: {a_time:07.3f}ms  {a_reps} runs")
     print(f"b: {b_time:07.3f}ms  {b_reps} runs")
 
-def run_regression(day=None, count=1):
-    days = [int(d.split("_")[1]) for d in listdir(".") if d.startswith("day")]
+def run_regression(year, day=None, count=1):
+    days = [int(d.split("_")[1]) for d in listdir(f"year_{year}") if d.startswith("day")]
     days.sort()
     results = defaultdict(list)
     for _ in range(count):
@@ -198,22 +201,22 @@ def main():
         if args.day == None:
             raise ArgumentError("Argument 'build' requires --day N argument")
         data = get_data(args.day, args.year, get_session_id())
-        create_template(args.day, data)
+        create_template(args.day, args.year, data)
     elif args.run:
         if args.day == None:
             raise ArgumentError("Argument 'run' requires --day N argument")
-        run_day(args.day)
+        run_day(args.day, args.year)
     elif args.test:
         if args.day == None:
             raise ArgumentError("Argument 'run' requires --day N argument")
-        run_day(args.day, fname="test.txt")
+        run_day(args.day, args.year, fname="test.txt")
     elif args.regression:
         if args.day is not None:
-            run_regression(day=args.day, count=args.count)
+            run_regression(args.year, day=args.day, count=args.count)
         else:
-            run_regression(count=args.count)
+            run_regression(args.year, count=args.count)
     elif args.benchmark:
-        run_benchmark(args.day)
+        run_benchmark(args.day, args.year)
 
 if __name__ == "__main__":
     main()
