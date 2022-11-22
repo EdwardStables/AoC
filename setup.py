@@ -47,16 +47,16 @@ def create_template(day: int, year:int, data: str):
         pass
 
     if not (p := t_dir/"task.py").exists():
-        create_script_template(p, day)
+        create_script_template(p, year, day)
 
-    if not isfile(file_path := join(t_dir, "task.py")):
-        create_script_template(file_path, day)
+    if not isfile(p := join(t_dir, "task.py")):
+        create_script_template(p, year, day)
 
-def create_script_template(file_path: Path, day):
+def create_script_template(file_path: Path, year, day):
     template = f"""#!/usr/bin/env python3
 
 def get_data(fname = "data.txt"):
-    with open(f"day_{day:02}/{{fname}}") as f:
+    with open(f"year_{year}/day_{day:02}/{{fname}}") as f:
         return [l.strip() for l in f]
 
 def main_a(data):
