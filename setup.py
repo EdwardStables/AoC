@@ -9,6 +9,10 @@ from subprocess import Popen
 from collections import defaultdict
 import csv
 
+def get_task(year, day):
+    module = __import__(f"year_{year}.day_{day:02}.task")
+    return getattr(module, f"day_{day:02}").task
+
 def get_session_id():
     with open("session.private") as f:
         return f.read()
@@ -77,9 +81,7 @@ if __name__ == "__main__":
 
 def run(day, year, fname="data.txt"):
     from timeit import default_timer as time
-    module = __import__(f"year_{year}.day_{day:02}.task")
-    task = getattr(module, f"day_{day:02}").task
-
+    task = get_task(year, day)
     data = task.get_data(fname=fname)
     t1 = time()
     a_res = task.main_a(data) 
@@ -100,8 +102,7 @@ def run_day(day, year, fname="data.txt"):
 def run_benchmark(day, year):
     from timeit import timeit
     from math import floor
-    module = __import__(f"year_{year}.day_{day:02}.task")
-    task = getattr(module, f"day_{day:02}").task
+    task = get_task(year, day)
     sample_time = run(day, year)
     a_reps = floor(5000/sample_time[0][0])
     b_reps = floor(5000/sample_time[1][0])
