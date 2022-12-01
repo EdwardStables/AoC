@@ -15,7 +15,16 @@ def get_sums(data):
     return sums
 
 def main_a(data):
-    return max(get_sums(data)) 
+    ma = 0 
+    cur = 0
+    for line in data:
+        if line == "":
+            if cur > ma:
+                ma = cur 
+            cur = 0 
+        else:
+            cur += int(line)
+    return ma
 
 def main_b(data):
     sums = sorted(get_sums(data))
