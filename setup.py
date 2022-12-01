@@ -101,14 +101,15 @@ def run_benchmark(day, year):
     from timeit import timeit
     from math import floor
     module = __import__(f"year_{year}.day_{day:02}.task")
-    sample_time = run(day)
+    task = getattr(module, f"day_{day:02}").task
+    sample_time = run(day, year)
     a_reps = floor(5000/sample_time[0][0])
     b_reps = floor(5000/sample_time[1][0])
 
-    data = module.task.get_data()
-    a_time = 1000 * timeit(lambda: module.task.main_a(data), number = a_reps)/a_reps
-    data = module.task.get_data() 
-    b_time = 1000 * timeit(lambda: module.task.main_b(data), number = b_reps)/b_reps
+    data = task.get_data()
+    a_time = 1000 * timeit(lambda: task.main_a(data), number = a_reps)/a_reps
+    data = task.get_data() 
+    b_time = 1000 * timeit(lambda: task.main_b(data), number = b_reps)/b_reps
 
 
     print(f"Year {year} Day {day} Benchmark")
