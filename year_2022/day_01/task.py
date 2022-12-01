@@ -4,16 +4,6 @@ def get_data(fname = "data.txt"):
     with open(f"year_2022/day_01/{fname}") as f:
         return [l.strip() for l in f]
 
-def get_sums(data):
-    sums = [0]
-
-    for line in data:
-        if line == "":
-            sums.append(0)
-        else:
-            sums[-1] += int(line)
-    return sums
-
 def main_a(data):
     ma = 0 
     cur = 0
@@ -27,8 +17,25 @@ def main_a(data):
     return ma
 
 def main_b(data):
-    sums = sorted(get_sums(data))
-    return sums[-1] + sums[-2] + sums[-3]
+    m1 = 0 
+    m2 = 0 
+    m3 = 0 
+    cur = 0
+    for line in data:
+        if line == "":
+            if cur > m3:
+                m1 = m2
+                m2 = m3
+                m3 = cur 
+            elif cur > m2:
+                m1 = m2
+                m2 = cur 
+            elif cur > m1:
+                m1 = cur
+            cur = 0 
+        else:
+            cur += int(line)
+    return m1+m2+m3
 
 if __name__ == "__main__":
     data = get_data()
