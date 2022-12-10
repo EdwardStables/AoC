@@ -63,7 +63,50 @@ def main_a(data):
     return len(set(visited))
 
 def main_b(data):
-    return 0
+    visited = [(0,0)]
+    pos = [[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]]
+    
+    for i, line in enumerate(data):
+        dir, dist = line.split()
+        for _ in range(int(dist)):
+            local_dir = dir
+            if local_dir == "L":
+                pos[0][0] += 1
+            if local_dir == "R":
+                pos[0][0] -= 1
+            if local_dir == "U":
+                pos[0][1] += 1
+            if local_dir == "D":
+                pos[0][1] -= 1
+            for i, seg in enumerate(pos[:-1]): 
+                dx = seg[0]-pos[i+1][0]
+                dy = seg[1]-pos[i+1][1]
+
+                move = False
+                if dx > 1 or (dx == 1 and abs(dy) > 1):
+                    move = True
+                    local_dir = "L"
+                    pos[i+1][0] += 1
+                elif dx < -1 or (dx == -1 and abs(dy) > 1):
+                    move = True
+                    local_dir = "R"
+                    pos[i+1][0] -= 1
+                if dy > 1 or (dy == 1 and abs(dx) > 1):
+                    move = True
+                    local_dir = "U"
+                    pos[i+1][1] += 1
+                elif dy < -1 or (dy == -1 and abs(dx) > 1):
+                    move = True
+                    local_dir = "D"
+                    pos[i+1][1] -= 1
+
+                if not move:
+                    break
+
+                if i == len(pos) - 2:
+                    visited.append((pos[i+1][0], pos[i+1][1]))
+
+    return len(set(visited))
 
 if __name__ == "__main__":
     data = get_data()
