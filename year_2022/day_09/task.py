@@ -32,25 +32,33 @@ class Pos:
 
 def main_a(data):
     visited = [(0,0)]
-    tpos = Pos(0,0)
-    hpos = Pos(0,0)
+    tpos = [0,0]
+    hpos = [0,0]
 
     for i, line in enumerate(data):
         dir, dist = line.split()
         for _ in range(int(dist)):
-            hpos += Pos(1,0) if dir=="R" else \
-                    Pos(-1,0) if dir=="L" else \
-                    Pos(0,1) if dir=="U" else Pos(0,-1)
-            d = hpos.dist(tpos)
-            if d.x > 1 or (d.x == 1 and abs(d.y) > 1):
-                tpos.x += 1
-            elif d.x < -1 or (d.x == -1 and abs(d.y) > 1):
-                tpos.x -= 1
-            if d.y > 1 or (d.y == 1 and abs(d.x) > 1):
-                tpos.y += 1
-            elif d.y < -1 or (d.y == -1 and abs(d.x) > 1):
-                tpos.y -= 1
-            visited.append((tpos.x, tpos.y))
+            if dir == "L":
+                hpos[0] += 1
+            if dir == "R":
+                hpos[0] -= 1
+            if dir == "U":
+                hpos[1] += 1
+            if dir == "D":
+                hpos[1] -= 1
+
+            dx = hpos[0]-tpos[0]
+            dy = hpos[1]-tpos[1]
+
+            if dx > 1 or (dx == 1 and abs(dy) > 1):
+                tpos[0] += 1
+            elif dx < -1 or (dx == -1 and abs(dy) > 1):
+                tpos[0] -= 1
+            if dy > 1 or (dy == 1 and abs(dx) > 1):
+                tpos[1] += 1
+            elif dy < -1 or (dy == -1 and abs(dx) > 1):
+                tpos[1] -= 1
+            visited.append((tpos[0], tpos[1]))
 
     return len(set(visited))
 
