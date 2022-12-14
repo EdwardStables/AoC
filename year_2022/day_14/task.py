@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from collections import deque
 
 def get_data(fname = "data.txt"):
     with open(f"year_2022/day_14/{fname}") as f:
@@ -77,6 +78,7 @@ def main_b(data):
 
     count = 0
     active_sand = (500,0)
+    hist = []
     while True:
         next_point = (active_sand[0], active_sand[1]+1)
         if next_point in taken_points or next_point[1] == floor:
@@ -88,12 +90,15 @@ def main_b(data):
             count += 1
             break
 
+
         if next_point in taken_points or next_point[1] == floor:
             count += 1
             taken_points.add(active_sand)
-            active_sand = (500,0)
+            active_sand = (500,0) if len(hist) < 3 else hist[-2]
+            hist = []
         else:
             active_sand = next_point
+            hist.append(active_sand)
     
     return count
 
