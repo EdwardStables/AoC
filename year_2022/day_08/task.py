@@ -73,7 +73,73 @@ def show2(mask, data):
 
 
 def main_b(data):
-    return 0
+    max_score = 0
+    dim = len(data)
+    for x in range(1, dim-1):
+        for y in range(1, dim-1):
+            score = 1
+            tmp = 0
+            while True:
+                test = x+tmp+1
+                if test >= 0 and test < dim:
+                    res = data[test][y] >= data[x][y]
+                else:
+                    res = False
+                if test < 0 or test >= dim or res:
+                    if res:
+                        tmp+=1
+                    score *= tmp
+                    tmp = 0
+                    break
+                else:
+                    tmp+=1
+            while True:
+                test = x-tmp-1
+                if test >= 0 and test < dim:
+                    res = data[test][y] >= data[x][y]
+                else:
+                    res = False
+                if test < 0 or test >= dim or res:
+                    if res:
+                        tmp+=1
+                    score *= tmp
+                    tmp = 0
+                    break
+                else:
+                    tmp+=1
+            while True:
+                test = y+tmp+1
+                if test >= 0 and test < dim:
+                    res = data[x][test] >= data[x][y]
+                else:
+                    res = False
+                if test < 0 or test >= dim or res:
+                    if res:
+                        tmp+=1
+                    score *= tmp
+                    tmp = 0
+                    break
+                else:
+                    tmp+=1
+            while True:
+                test = y-tmp-1
+                if test >= 0 and test < dim:
+                    res = data[x][test] >= data[x][y]
+                else:
+                    res = False
+                if test < 0 or test >= dim or res:
+                    if res:
+                        tmp += 1
+                    score *= tmp
+                    tmp = 0
+                    break
+                else:
+                    tmp+=1
+            if score > max_score:
+                max_score = score
+
+
+    return max_score
 
 if __name__ == "__main__":
     data = get_data()
