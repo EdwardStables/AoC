@@ -32,35 +32,29 @@ def dir_gen(data):
         ind = (ind+1)%len(data)
         yield -1 if val=="<" else 1
 
-def board_print(positions, highest_point):
-    for y in range(highest_point + 1, -1, -1):
-        if y == 0:
-            print("+-------+")
-            break
+def board_print(positions, highest_point, cut=None, label=None, show_base=False):
+    cut = -1 if cut is None else highest_point-cut
+    cut = max(-1, cut)
+    s = ""
+    if label is not None:
+        print(label)
+    for y in range(highest_point + 1, cut, -1):
+        if y == cut+1:
+            if (show_base):
+                s += "+-------+"
+            return s
         for x in range(-1, 8):
             if x == -1:
-                print("|",end="")
+                s += "|"
             elif x == 7:
-                print("|")
+                s += "|\n"
             elif (x,y) in positions:
-                print("#",end="")
+                s += "#"
             else:
-                print(".",end="")
+                s += "."
 
-
-def run(lim, data):
-    d = data[0]
-    d_gen = dir_gen(d)
-
-    yw = y_wrap()
-    shapes = pos_gen(yw)
-
-    highest_point = 0
-    positions = set()
-
-    for i in range(lim):
-        #board_print(positions , highest_point+10)
-        #input()
+def run_pattern(count, yw, shapes, d_gen, positions, highest_point):
+    for j in range(count):
         yw.y = highest_point + 4
         shape = next(shapes)
 
@@ -79,14 +73,67 @@ def run(lim, data):
             highest_point = max(highest_point, max(y for _,y in new_positions))
             positions |= new_positions
             break
-
     return highest_point
+
+def run(lim, data):
+    d = data[0]
+    d_gen = dir_gen(d)
+
+    yw = y_wrap()
+    shapes = pos_gen(yw)
+
+    highest_point = 0
+    positions = set()
+
+    major = lim // len(d)
+    extra = lim % len(d)
+    
+    print("major", major, "extra", extra)
+
+    diffs = []    
+
+    prev_highest = 0
+    pattern = []
+
+
+    final_ind = 0
+    for i in range(major):
+        print(i)
+        highest_point = run_pattern(len(data[0]), yw, shapes, d_gen, positions, highest_point)        
+        diff = highest_point-prev_highest
+        
+        if i > 0:
+            diffs.append(diff)
+
+        if len(diffs) > 2 and len(diffs) % 2 == 0:
+            mid = len(diffs)//2
+            if diffs[:mid] == diffs[mid:]:
+                pattern = diffs[:mid]
+                print(i)
+                final_ind = i
+                break
+
+        prev_highest = highest_point
+        positions = set(p for p in positions if p[1] > highest_point-100)
+    
+    pattern_length = len(pattern)
+    highest_point_to_add = 0
+    if pattern_length > 0:
+        remaining_major = major - final_ind
+        print("remaining", remaining_major, )
+        print(remaining_major // pattern_length, remaining_major%pattern_length)
+        highest_point_to_add = (remaining_major // pattern_length)*sum(pattern)
+        for i in range(remaining_major%pattern_length -1):
+            highest_point = run_pattern(len(d), yw, shapes, d_gen, positions, highest_point)
+
+    print(highest_point, extra)
+    highest_point = run_pattern(extra, yw, shapes, d_gen, positions, highest_point)
+    return highest_point + highest_point_to_add
 
 def main_a(data):
     return run(2022, data)
 
 def main_b(data):
-    return 0
     return run(1000000000000, data)
 
 if __name__ == "__main__":
