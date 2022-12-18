@@ -33,9 +33,6 @@ def traverse(nodes: dict[str,Node], cur: str, budget:int , switched:set[str], va
         if budget == 0:
             break
 
-        #If current isn't switched
-        #max_val = max(max_val, traverse(nodes, key, budget-cost, switched, val, depth=depth+1, current_max=max(current_max, max_val)))
-        #If current is switched
         if cur not in switched:
             max_val = max(max_val, traverse(nodes, key, budget-1-cost, local_switched, val + (budget-1)*nodes[cur].flow, depth=depth+1, current_max=max(current_max, max_val)))
         else:
@@ -43,7 +40,30 @@ def traverse(nodes: dict[str,Node], cur: str, budget:int , switched:set[str], va
 
     return max_val
 
-def main_a(data):
+def traverse_b(nodes: dict[str,Node], cur_a: str, cur_b: str, budget:int , switched:set[str], val:int, depth=0, current_max=0):
+    if depth==4:
+        print(current_max, depth, budget)
+    #input()
+    #print(cur, budget, switched, current_max)
+    if budget <= 0 or len(switched) == len(nodes):
+        return val
+
+    max_val = 0
+    local_switched = copy(switched)
+
+    for key_a, cost_a in nodes[cur_a].connections.items():
+        for key_b, cost_b in nodes[cur_b].connections.items():
+            if budget == 0:
+                break
+
+        if cur not in switched:
+            max_val = max(max_val, traverse(nodes, key, budget-1-cost, local_switched, val + (budget-1)*nodes[cur].flow, depth=depth+1, current_max=max(current_max, max_val)))
+        else:
+            max_val = max(max_val, traverse(nodes, key, budget-cost, switched, val, depth=depth+1, current_max=max(current_max, max_val)))
+
+    return max_val
+
+def parse(data):
     nodes = {}
     nodes: dict[str, Node]
     for line in data:
@@ -55,7 +75,11 @@ def main_a(data):
         links = [l[:2] for l in line[9:]]
         for link in links:
             nodes[line[1]].connections[link] = 1
-        
+
+    return nodes
+
+def main_a(data):
+    nodes = parse(data)
     starters = simplify(nodes)
 
     max_val = 0
@@ -64,6 +88,18 @@ def main_a(data):
         print("start" , start, v)
         max_val = max(max_val, v)
     return max_val
+
+def main_b(data):
+    nodes = parse(data)
+    starters = simplify(nodes)
+
+    max_val = 0
+    for start, budget in starters.items():
+        v = traverse(nodes, start, start, budget-4, set(), 0, current_max=max_val)
+        print("start" , start, v)
+        max_val = max(max_val, v)
+    return max_val
+
 
 def simplify(nodes: dict[str,Node]):
     to_rm = []
@@ -109,9 +145,6 @@ def simplify(nodes: dict[str,Node]):
         print(k, c)
 
     return starters
-
-def main_b(data):
-    return 0
 
 if __name__ == "__main__":
     data = get_data()
