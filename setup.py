@@ -15,7 +15,7 @@ def get_task(year, day):
 
 def get_session_id():
     with open("session.private") as f:
-        return f.read()
+        return f.read().strip()
 
 def get_args():
     parser = ArgumentParser()
