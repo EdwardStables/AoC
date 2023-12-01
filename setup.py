@@ -27,7 +27,7 @@ def get_args():
     parser.add_argument("--run", "-r", action="store_true", help="Run the given day and print answer + timing info (exc data loading)")
     parser.add_argument("--test", "-t", action="store_true", help="Run the given day with input of 'test.txt'")
     parser.add_argument("--regression", action="store_true", help="Like --run, but runs all days, saves a timestamped dataset")
-    parser.add_argument("--count", "-c", type=int, default=1, help="Sets number of tests to run for regression. Either whole regression c times, or single test c times if `-d` also given")
+    parser.add_argument("--count", "-c", type=int, default=1, help="Sets number of tests to run for regression or test")
     parser.add_argument("--benchmark", action="store_true", help="Run timeit on the given day to get a good runtime. Excludes file loading")
 
     return parser.parse_args()
@@ -104,11 +104,26 @@ def run(day, year, fname="data.txt"):
 
     return [(a_time, a_res), (b_time, b_res)]
 
-def run_day(day, year, fname="data.txt"):
+def run_day(day, year, count, fname="data.txt"):
     print(f"Year {year} Day {day} {'(test)' if fname != 'data.txt' else ''}")
-    a, b = run(day, year, fname=fname)
-    print(f"a: {a[0]:07.3f}ms  {a[1]}")
-    print(f"b: {b[0]:07.3f}ms  {b[1]}")
+    a_runs = []
+    b_runs = []
+    a_res = None
+    b_res = None
+    for i in range(count):
+        a, b = run(day, year, fname=fname)
+        a_runs.append(a[0])
+        b_runs.append(b[0])
+        if i == 0:
+            a_res = a[1]
+            b_res = b[1]
+        else:
+            assert a_res == a[1]
+            assert b_res == b[1]
+
+    print(f"a: {(sum(a_runs)/count):07.3f}ms  {a_res}")
+    print(f"b: {(sum(b_runs)/count):07.3f}ms  {b_res}")
+    print(f"{count} Run(s)")
 
 def run_benchmark(day, year):
     from timeit import timeit
@@ -135,7 +150,7 @@ def run_regression(year, day=None, count=1):
     for _ in range(count):
         for d in days:
             if day is None or d==day:
-                a, b = run(d)
+                a, b = run(d, year)
                 results[d].append((dt.now(), a[0], b[0], a[1], b[1]))
 
     golden_ans = {k:(v["a answer"],v["b answer"]) for k, v in get_results().items()}
@@ -218,11 +233,11 @@ def main():
     elif args.run:
         if args.day == None:
             raise ArgumentError("Argument 'run' requires --day N argument")
-        run_day(args.day, args.year)
+        run_day(args.day, args.year, args.count)
     elif args.test:
         if args.day == None:
             raise ArgumentError("Argument 'run' requires --day N argument")
-        run_day(args.day, args.year, fname="test.txt")
+        run_day(args.day, args.year, args.count, fname="test.txt")
     elif args.regression:
         if args.day is not None:
             run_regression(args.year, day=args.day, count=args.count)
