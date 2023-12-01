@@ -24,9 +24,6 @@ def main_b(data):
     sum = 0
 
     for line in data:
-        on_first = True
-        potential_last = 0
-    
         for i, char in enumerate(line):
             found = None
             if char.isnumeric():
@@ -37,14 +34,22 @@ def main_b(data):
                         found = j + 1
             if found is None: continue
 
-            if on_first:
-                val = int(found)
-                potential_last = val
-                sum += 10*val
+            sum += 10*int(found)
+            break
+        for i, char in enumerate(line[::-1]):
+            found = None
+            end_index = len(line) - i
+            if char.isnumeric():
+                found = int(char)
             else:
-                potential_last = int(found)
-            on_first = False
-        sum += potential_last
+                for j, s in enumerate(num_strings):
+                    if line[end_index-len(s):end_index] == s:
+                        found = j + 1
+            if found is None: continue
+
+            sum += int(found)
+            break
+
     return sum 
 
 if __name__ == "__main__":
