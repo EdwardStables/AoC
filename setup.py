@@ -121,8 +121,8 @@ def run_day(day, year, count, fname="data.txt"):
             assert a_res == a[1]
             assert b_res == b[1]
 
-    print(f"a: {(sum(a_runs)/count):07.3f}ms  {a_res}")
-    print(f"b: {(sum(b_runs)/count):07.3f}ms  {b_res}")
+    print(f"a: {(sum(a_runs)/count):07.3f}ms          {a_res}")
+    print(f"b: {(sum(b_runs)/count):07.3f}ms          {b_res}")
     print(f"{count} Run(s)")
 
 def run_benchmark(day, year):
