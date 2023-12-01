@@ -44,7 +44,6 @@ def main_b(data):
             else:
                 potential_last = int(found)
             on_first = False
-        print(potential_last) 
         sum += potential_last
     return sum 
 
