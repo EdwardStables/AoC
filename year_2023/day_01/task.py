@@ -18,7 +18,7 @@ def main_a(data):
 
 def main_b(data):
     num_strings = [
-        "zero", "one", "two", "three", "four",
+        "one", "two", "three", "four",
         "five", "six", "seven", "eight", "nine"
     ]
     sum = 0
@@ -34,16 +34,17 @@ def main_b(data):
             else:
                 for j, s in enumerate(num_strings):
                     if line[i:i+len(s)] == s:
-                        found = j
+                        found = j + 1
             if found is None: continue
 
             if on_first:
-                val = 10 * int(found)
-                sum += val
+                val = int(found)
+                potential_last = val
+                sum += 10*val
             else:
                 potential_last = int(found)
             on_first = False
-        
+        print(potential_last) 
         sum += potential_last
     return sum 
 
