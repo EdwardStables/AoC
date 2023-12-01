@@ -16,11 +16,40 @@ def main_a(data):
         
     return sum
 
+def fwd_search(s):
+    if s[0] not in "otfsen": return None
+    if s[0] == "o" and s[0:3] == "one": return 1
+    if s[0] == "t":
+        if s[0:3] == "two": return 2
+        if s[0:5] == "three": return 3
+    if s[0] == "f":
+        if s[0:4] == "four": return 4
+        if s[0:4] == "five": return 5
+    if s[0] == "s":
+        if s[0:3] == "six": return 6
+        if s[0:5] == "seven": return 7
+    if s[0] == "e" and s[0:5] == "eight": return 8
+    if s[0] == "n" and s[0:4] == "nine": return 9
+
+    return None
+
+def bwd_search(s):
+    print("bwd", s)
+    if s[-1] not in "eorxnt": return None
+    if s[-1] == "e":
+        if s[-3:] == "one": return 1
+        if s[-5:] == "three": return 3
+        if s[-4:] == "five": return 5
+        if s[-4:] == "nine": return 9
+    if s[-1] == "o" and s[-3:] == "two": return 2
+    if s[-1] == "r" and s[-4:] == "four": return 4
+    if s[-1] == "x" and s[-3:] == "six": return 6
+    if s[-1] == "n" and s[-7:] == "seven": return 7
+    if s[-1] == "t" and s[-5:] == "eight": return 8
+
+    return None
+
 def main_b(data):
-    num_strings = [
-        "one", "two", "three", "four",
-        "five", "six", "seven", "eight", "nine"
-    ]
     sum = 0
 
     for line in data:
@@ -29,24 +58,23 @@ def main_b(data):
             if char.isnumeric():
                 found = int(char)
             else:
-                for j, s in enumerate(num_strings):
-                    if line[i:i+len(s)] == s:
-                        found = j + 1
+                found = fwd_search(line[i:])
             if found is None: continue
 
+            print(found)
             sum += 10*int(found)
             break
+
         for i, char in enumerate(line[::-1]):
             found = None
-            end_index = len(line) - i
             if char.isnumeric():
                 found = int(char)
             else:
-                for j, s in enumerate(num_strings):
-                    if line[end_index-len(s):end_index] == s:
-                        found = j + 1
+                found = bwd_search(line[:len(line)-i])
+                print(found)
             if found is None: continue
 
+            print(found)
             sum += int(found)
             break
 
