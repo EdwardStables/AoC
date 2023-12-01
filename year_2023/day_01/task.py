@@ -18,34 +18,30 @@ def main_a(data):
 
 def fwd_search(s):
     if s[0] not in "otfsen": return None
-    if s[0] == "o" and s[0:3] == "one": return 1
-    if s[0] == "t":
-        if s[0:3] == "two": return 2
-        if s[0:5] == "three": return 3
-    if s[0] == "f":
-        if s[0:4] == "four": return 4
-        if s[0:4] == "five": return 5
-    if s[0] == "s":
-        if s[0:3] == "six": return 6
-        if s[0:5] == "seven": return 7
-    if s[0] == "e" and s[0:5] == "eight": return 8
-    if s[0] == "n" and s[0:4] == "nine": return 9
+    if s[0:3] == "one": return 1
+    if s[0:3] == "two": return 2
+    if s[0:5] == "three": return 3
+    if s[0:4] == "four": return 4
+    if s[0:4] == "five": return 5
+    if s[0:3] == "six": return 6
+    if s[0:5] == "seven": return 7
+    if s[0:5] == "eight": return 8
+    if s[0:4] == "nine": return 9
 
     return None
 
 def bwd_search(s):
-    print("bwd", s)
     if s[-1] not in "eorxnt": return None
     if s[-1] == "e":
         if s[-3:] == "one": return 1
         if s[-5:] == "three": return 3
         if s[-4:] == "five": return 5
         if s[-4:] == "nine": return 9
-    if s[-1] == "o" and s[-3:] == "two": return 2
-    if s[-1] == "r" and s[-4:] == "four": return 4
-    if s[-1] == "x" and s[-3:] == "six": return 6
-    if s[-1] == "n" and s[-7:] == "seven": return 7
-    if s[-1] == "t" and s[-5:] == "eight": return 8
+    if s[-3:] == "two": return 2
+    if s[-4:] == "four": return 4
+    if s[-3:] == "six": return 6
+    if s[-5:] == "seven": return 7
+    if s[-5:] == "eight": return 8
 
     return None
 
@@ -61,7 +57,6 @@ def main_b(data):
                 found = fwd_search(line[i:])
             if found is None: continue
 
-            print(found)
             sum += 10*int(found)
             break
 
@@ -71,10 +66,8 @@ def main_b(data):
                 found = int(char)
             else:
                 found = bwd_search(line[:len(line)-i])
-                print(found)
             if found is None: continue
 
-            print(found)
             sum += int(found)
             break
 
