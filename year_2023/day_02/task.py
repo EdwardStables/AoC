@@ -28,7 +28,7 @@ def main_a(data):
 
 def main_b(data):
     sum = 0
-    for i, line in enumerate(data):
+    for line in data:
         rmin = 0
         gmin = 0
         bmin = 0
