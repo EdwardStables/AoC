@@ -82,8 +82,9 @@ if __name__ == "__main__":
 def run(day, year, fname="data.txt"):
     from timeit import default_timer as time
     task = get_task(year, day)
-    
-    if fname == "test.txt" and not (Path("year_" + str(year)) / str(day) / fname).exists():
+    test_path =  Path("year_" + str(year)) / f"day_{day:02}" / fname
+    print(test_path)
+    if fname == "test.txt" and not test_path.exists():
         a_fname = "testa.txt"
     else:
         a_fname = fname
@@ -93,7 +94,7 @@ def run(day, year, fname="data.txt"):
     a_res = task.main_a(data) 
     a_time = (time() - t1) * 1000
 
-    if fname == "test.txt" and not (Path("year_" + str(year)) / str(day) / fname).exists():
+    if fname == "test.txt" and not test_path.exists():
         b_fname = "testb.txt"
     else:
         b_fname = fname
