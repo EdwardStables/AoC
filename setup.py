@@ -83,7 +83,6 @@ def run(day, year, fname="data.txt"):
     from timeit import default_timer as time
     task = get_task(year, day)
     test_path =  Path("year_" + str(year)) / f"day_{day:02}" / fname
-    print(test_path)
     if fname == "test.txt" and not test_path.exists():
         a_fname = "testa.txt"
     else:
