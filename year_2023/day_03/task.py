@@ -28,7 +28,6 @@ def main_a(data):
     for y, line in enumerate(data):
         nums = []
         num = ""
-        start = 0
         for x, item in enumerate(line):
             if item.isnumeric():
                 if num == "": start = x
@@ -37,6 +36,10 @@ def main_a(data):
                 res = test_for_part(data, y, num, start)
                 sum += res
                 num = ""
+
+        if num != "":
+            res = test_for_part(data, y, num, start)
+            sum += res
     return sum
 
 def main_b(data):
