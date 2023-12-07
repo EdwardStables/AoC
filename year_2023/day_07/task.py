@@ -6,7 +6,18 @@ def get_data(fname = "data.txt"):
     with open(f"year_2023/day_07/{fname}") as f:
         return [l.strip() for l in f]
 
-def counter_to_hand(c: Counter):
+def counter_to_hand(c: Counter, jokes=False):
+    if jokes and "J" in c:
+        mk = ""
+        m = 0
+        for k,v in c.items():
+            if k != "J" and v > m:
+                mk = k
+                m = v
+
+        c[mk] += c["J"]
+        c.pop("J")
+
     v = sorted(list(c.values()), reverse=True)
     if v == [5]:
         return 6
@@ -22,38 +33,43 @@ def counter_to_hand(c: Counter):
         return 1
     return 0
 
-def card_strength(c):
-    if c == "2": return 0
-    if c == "3": return 1
-    if c == "4": return 2
-    if c == "5": return 3
-    if c == "6": return 4
-    if c == "7": return 5
-    if c == "8": return 6
-    if c == "9": return 7
-    if c == "T": return 8
-    if c == "J": return 9
-    if c == "Q": return 10
-    if c == "K": return 11
-    if c == "A": return 12
-    print(c)
+def card_strength(c,jokes=False):
+    if c == "2": return 1
+    if c == "3": return 2
+    if c == "4": return 3
+    if c == "5": return 4
+    if c == "6": return 5
+    if c == "7": return 6
+    if c == "8": return 7
+    if c == "9": return 8
+    if c == "T": return 9
+    if c == "J": return 0 if jokes else 10
+    if c == "Q": return 11
+    if c == "K": return 12
+    if c == "A": return 13
     assert False
 
-def compare(ha, hb):
+def cmp(a, b):
+    return compare(a, b, False)
+
+def jcmp(a, b):
+    return compare(a, b, True)
+
+def compare(ha, hb, jokes):
     ha = ha[0]
     hb = hb[0]
-    handa = counter_to_hand(Counter(ha))
-    handb = counter_to_hand(Counter(hb))
+    handa = counter_to_hand(Counter(ha), jokes=jokes)
+    handb = counter_to_hand(Counter(hb), jokes=jokes)
     if handa != handb:
         return 1 if handa > handb else -1
     for ca, cb in zip(ha,hb):
         if ca != cb:
-            return 1 if card_strength(ca) > card_strength(cb) else -1
+            return 1 if card_strength(ca, jokes=jokes) > card_strength(cb, jokes=jokes) else -1
     assert False
 
-def main_a(data):
+def run(data, jokes):
     data = [d.split() for d in data]
-    data.sort(key=cmp_to_key(compare))
+    data.sort(key=cmp_to_key(jcmp if jokes else cmp))
 
     sum = 0
     for i, (_, v) in enumerate(data):
@@ -61,8 +77,11 @@ def main_a(data):
 
     return sum
 
+def main_a(data):
+    return run(data, False)
+
 def main_b(data):
-    return 0
+    return run(data, True)
 
 if __name__ == "__main__":
     data = get_data()
