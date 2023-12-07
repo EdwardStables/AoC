@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from collections import Counter
-from functools import cmp_to_key
 
 def get_data(fname = "data.txt"):
     with open(f"year_2023/day_07/{fname}") as f:
@@ -32,12 +31,11 @@ def counter_to_hand(c: str, jokes=False):
     return 0
 
 def card_strength(hand: str,jokes=False):
-    hand = hand.replace("A","E")
-    hand = hand.replace("K","D")
-    hand = hand.replace("Q","C")
-    hand = hand.replace("J","0" if jokes else "B")
-    hand = hand.replace("T","A")
-    return hand
+    return hand.replace("A","E").\
+                replace("K","D").\
+                replace("Q","C").\
+                replace("J","0" if jokes else "B").\
+                replace("T","A")
 
 def run(data, jokes):
     data = [d.split() for d in data]
