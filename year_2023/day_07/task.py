@@ -47,32 +47,18 @@ def card_strength(c,jokes=False):
     if c == "Q": return 11
     if c == "K": return 12
     if c == "A": return 13
-    assert False
-
-def cmp(a, b):
-    return compare(a, b, False)
-
-def jcmp(a, b):
-    return compare(a, b, True)
-
-def compare(ha, hb, jokes):
-    ha = ha[0]
-    hb = hb[0]
-    handa = counter_to_hand(Counter(ha), jokes=jokes)
-    handb = counter_to_hand(Counter(hb), jokes=jokes)
-    if handa != handb:
-        return 1 if handa > handb else -1
-    for ca, cb in zip(ha,hb):
-        if ca != cb:
-            return 1 if card_strength(ca, jokes=jokes) > card_strength(cb, jokes=jokes) else -1
-    assert False
+    assert False, c
 
 def run(data, jokes):
     data = [d.split() for d in data]
-    data.sort(key=cmp_to_key(jcmp if jokes else cmp))
+    for d in data:
+        d.append(counter_to_hand(Counter(d[0]),jokes=jokes))
+        d.append([card_strength(c,jokes=jokes) for c in d[0]])
+
+    data.sort(key=lambda d: (d[2], d[3]))
 
     sum = 0
-    for i, (_, v) in enumerate(data):
+    for i, (_, v, _, _) in enumerate(data):
         sum += (i+1) * int(v)
 
     return sum
