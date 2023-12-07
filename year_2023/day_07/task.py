@@ -6,7 +6,8 @@ def get_data(fname = "data.txt"):
     with open(f"year_2023/day_07/{fname}") as f:
         return [l.strip() for l in f]
 
-def counter_to_hand(c: Counter, jokes=False):
+def counter_to_hand(c: str, jokes=False):
+    c = Counter(c)
     if jokes and "J" in c:
         mk = ""
         m = 0
@@ -18,42 +19,31 @@ def counter_to_hand(c: Counter, jokes=False):
         c[mk] += c["J"]
         c.pop("J")
 
-    v = sorted(list(c.values()), reverse=True)
-    if v == [5]:
+    v = c.values()
+    l = len(v)
+    if l == 1:
         return 6
-    if v == [4,1]:
-        return 5
-    if v == [3,2]:
-        return 4
-    if v == [3,1,1]:
-        return 3
-    if v == [2,2,1]:
-        return 2
-    if v == [2,1,1,1]:
+    if l == 2:
+        return max(v)+1
+    if l == 3:
+        return max(v)
+    if l == 4:
         return 1
     return 0
 
-def card_strength(c,jokes=False):
-    if c == "2": return 1
-    if c == "3": return 2
-    if c == "4": return 3
-    if c == "5": return 4
-    if c == "6": return 5
-    if c == "7": return 6
-    if c == "8": return 7
-    if c == "9": return 8
-    if c == "T": return 9
-    if c == "J": return 0 if jokes else 10
-    if c == "Q": return 11
-    if c == "K": return 12
-    if c == "A": return 13
-    assert False, c
+def card_strength(hand: str,jokes=False):
+    hand = hand.replace("A","E")
+    hand = hand.replace("K","D")
+    hand = hand.replace("Q","C")
+    hand = hand.replace("J","0" if jokes else "B")
+    hand = hand.replace("T","A")
+    return hand
 
 def run(data, jokes):
     data = [d.split() for d in data]
     for d in data:
-        d.append(counter_to_hand(Counter(d[0]),jokes=jokes))
-        d.append([card_strength(c,jokes=jokes) for c in d[0]])
+        d.append(counter_to_hand(d[0],jokes=jokes))
+        d.append(card_strength(d[0],jokes=jokes))
 
     data.sort(key=lambda d: (d[2], d[3]))
 
