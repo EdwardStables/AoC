@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from math import lcm
+from numpy import lcm
 
 def get_data(fname = "data.txt"):
     with open(f"year_2023/day_08/{fname}") as f:
@@ -44,7 +44,7 @@ def main_b(data):
         current_nodes[start_node] = steps
 
     
-    return lcm(*current_nodes.values())
+    return lcm.reduce(list(current_nodes.values()))
 
 if __name__ == "__main__":
     data = get_data()
