@@ -3,3 +3,4 @@ session.private
 data/results.csv
 .wsl
 hardware/
+*prof
