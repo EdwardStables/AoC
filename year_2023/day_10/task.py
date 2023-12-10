@@ -56,23 +56,33 @@ def main_b(data):
     if left and right:
         data[Sy] = data[Sy].replace("S", "-")
 
-    print()
-
     inside = set()
+    not_inside = set()
     for y, line in enumerate(data):
         for x, char in enumerate(line):
             if (y,x) in positions: continue
+            if (y,x) in inside: continue
+            if (y,x) in not_inside: continue
             dir = -1 if x<len(data)/2 else 1
             crosses = 0
             xn = x+dir
             skip = False
             h_entry = ""
+            considered = set()
+            considered.add((y,x))
             while xn >= 0 and xn < len(data[0]):
+
                 #already hit this point and not crossed outside
                 if data[y][xn] in inside and crosses%2 == 0:
-                    inside.add((y,x))
+                    inside = inside.union(considered)
                     skip = True
                     break
+
+                if data[y][xn] in not_inside and crosses%2 == 1:
+                    not_inside = not_inside.union(considered)
+                    skip = True
+                    break
+
                 #standard line cross
                 if (y,xn) in positions:
                     c = data[y][xn]
@@ -92,6 +102,9 @@ def main_b(data):
                             h_entry = ""
                 else:
                     assert h_entry == ""
+                    #only add to considered if it is on the same side of the line
+                    if crosses % 2 == 0:
+                        considered.add((y,xn))
 
                 xn += dir
 
@@ -101,7 +114,9 @@ def main_b(data):
             assert h_entry == ""
             #at least 1 cross means inside
             if crosses % 2 == 1:
-                inside.add((y,x))
+                inside = inside.union(considered)
+            else:
+                not_inside = not_inside.union(considered)
 
             
     return len(inside)
