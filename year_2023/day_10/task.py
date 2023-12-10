@@ -44,23 +44,23 @@ def main_b(data):
     right = data[Sy][Sx+1] in "-J7" and Sx < len(data[0])-1
     left = data[Sy][Sx-1] in "-FL" and Sx > 0
 
-    if bot and top:
-        data[Sy] = data[Sy].replace("S", "|")
-    if bot and right:
-        data[Sy] = data[Sy].replace("S", "F")
-    if bot and left:
-        data[Sy] = data[Sy].replace("S", "7")
-    if top and right:
-        data[Sy] = data[Sy].replace("S", "L")
-    if top and left:
-        data[Sy] = data[Sy].replace("S", "J")
-    if left and right:
-        data[Sy] = data[Sy].replace("S", "-")
-
     ddata = [["." for _ in data[0]] for _ in data]
     for y, x in positions:
         ddata[y][x] = data[y][x]
     data = ddata
+
+    if bot and top:
+        data[Sy][Sx] = "|"
+    if bot and right:
+        data[Sy][Sx] = "F"
+    if bot and left:
+        data[Sy][Sx] = "7"
+    if top and right:
+        data[Sy][Sx] = "L"
+    if top and left:
+        data[Sy][Sx] = "J"
+    if left and right:
+        data[Sy][Sx] = "-"
 
     count = 0
     for y, line in enumerate(data):
