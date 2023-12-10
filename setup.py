@@ -124,8 +124,8 @@ def run_day(day, year, count, fname="data.txt"):
             a_result = a_res
             b_result = b_res
         else:
-            assert a_result == a[1]
-            assert b_result == b[1]
+            assert a_result == a_res
+            assert b_result == b_res
 
     print(f"a: {(sum(a_runs)/count):07.3f}ms          {a_result}")
     print(f"b: {(sum(b_runs)/count):07.3f}ms          {b_result}")
