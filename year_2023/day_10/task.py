@@ -59,14 +59,14 @@ def main_b(data):
 
     inside = set()
     for y, line in enumerate(data):
-        crosses = 0
+        cross = False
         h_entry = ""
         for x, c in enumerate(line):
             #standard line cross
             if (y,x) in positions:
                 if c == "|":
                     assert h_entry == "", (h_entry, (y,x))
-                    crosses += 1
+                    cross = not cross
                 elif c == "-":
                     assert h_entry != "",  (h_entry, (y,x))
                 elif c in "JLF7":
@@ -76,12 +76,12 @@ def main_b(data):
                         #crosses still
                         if h_entry in "JL" and c in "F7" or\
                            h_entry in "F7" and c in "JL":
-                           crosses += 1
+                           cross = not cross
                         h_entry = ""
             else:
                 assert h_entry == ""
                 #only add to considered if it is on the same side of the line
-                if crosses % 2 == 1:
+                if cross:
                     inside.add((y,x))
 
             
