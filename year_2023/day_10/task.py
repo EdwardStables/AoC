@@ -39,10 +39,11 @@ def main_b(data):
     (Sy,Sx), positions = loop(data)
 
     #replace S to simplify later code
-    bot = data[Sy+1][Sx] in "|JL" and Sy > 0
-    top = data[Sy-1][Sx] in "|F7" and Sy < len(data)-1
+    bot = data[Sy+1][Sx] in "|JL" and Sy < len(data)-1
+    top = data[Sy-1][Sx] in "|F7" and Sy > 0
     right = data[Sy][Sx+1] in "-J7" and Sx < len(data[0])-1
     left = data[Sy][Sx-1] in "-FL" and Sx > 0
+
     if bot and top:
         data[Sy] = data[Sy].replace("S", "|")
     if bot and right:
@@ -57,66 +58,31 @@ def main_b(data):
         data[Sy] = data[Sy].replace("S", "-")
 
     inside = set()
-    not_inside = set()
     for y, line in enumerate(data):
-        for x, char in enumerate(line):
-            if (y,x) in positions: continue
-            if (y,x) in inside: continue
-            if (y,x) in not_inside: continue
-            dir = -1 if x<len(data)/2 else 1
-            crosses = 0
-            xn = x+dir
-            skip = False
-            h_entry = ""
-            considered = set()
-            considered.add((y,x))
-            while xn >= 0 and xn < len(data[0]):
-
-                #already hit this point and not crossed outside
-                if data[y][xn] in inside and crosses%2 == 0:
-                    inside = inside.union(considered)
-                    skip = True
-                    break
-
-                if data[y][xn] in not_inside and crosses%2 == 1:
-                    not_inside = not_inside.union(considered)
-                    skip = True
-                    break
-
-                #standard line cross
-                if (y,xn) in positions:
-                    c = data[y][xn]
-                    if c == "|":
-                        assert h_entry == "", (h_entry, (y,x), (y,xn))
-                        crosses += 1
-                    elif c == "-":
-                        assert h_entry != ""
-                    elif c in "JLF7":
-                        if h_entry == "":
-                            h_entry = c
-                        else:
-                            #crosses still
-                            if h_entry in "JL" and c in "F7" or\
-                               h_entry in "F7" and c in "JL":
-                               crosses += 1
-                            h_entry = ""
-                else:
-                    assert h_entry == ""
-                    #only add to considered if it is on the same side of the line
-                    if crosses % 2 == 0:
-                        considered.add((y,xn))
-
-                xn += dir
-
-            if skip:
-                continue
-
-            assert h_entry == ""
-            #at least 1 cross means inside
-            if crosses % 2 == 1:
-                inside = inside.union(considered)
+        crosses = 0
+        h_entry = ""
+        for x, c in enumerate(line):
+            #standard line cross
+            if (y,x) in positions:
+                if c == "|":
+                    assert h_entry == "", (h_entry, (y,x))
+                    crosses += 1
+                elif c == "-":
+                    assert h_entry != "",  (h_entry, (y,x))
+                elif c in "JLF7":
+                    if h_entry == "":
+                        h_entry = c
+                    else:
+                        #crosses still
+                        if h_entry in "JL" and c in "F7" or\
+                           h_entry in "F7" and c in "JL":
+                           crosses += 1
+                        h_entry = ""
             else:
-                not_inside = not_inside.union(considered)
+                assert h_entry == ""
+                #only add to considered if it is on the same side of the line
+                if crosses % 2 == 1:
+                    inside.add((y,x))
 
             
     return len(inside)
