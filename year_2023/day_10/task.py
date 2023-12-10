@@ -4,7 +4,7 @@ def get_data(fname = "data.txt"):
     with open(f"year_2023/day_10/{fname}") as f:
         return [l.strip() for l in f]
 
-def main_a(data):
+def loop(data):
     for y, line in enumerate(data):
         for x, char in enumerate(line):
             if char == "S":
@@ -28,10 +28,83 @@ def main_a(data):
         positions.append(next_pos)
         next_pos = next(next_pos[0], next_pos[1], positions[-2])
 
+    return S, positions
+
+
+def main_a(data):
+    _, positions = loop(data)
     return int(len(positions) / 2)
 
 def main_b(data):
-    return 0
+    (Sy,Sx), positions = loop(data)
+
+    #replace S to simplify later code
+    bot = data[Sy+1][Sx] in "|JL" and Sy > 0
+    top = data[Sy-1][Sx] in "|F7" and Sy < len(data)-1
+    right = data[Sy][Sx+1] in "-J7" and Sx < len(data[0])-1
+    left = data[Sy][Sx-1] in "-FL" and Sx > 0
+    if bot and top:
+        data[Sy] = data[Sy].replace("S", "|")
+    if bot and right:
+        data[Sy] = data[Sy].replace("S", "F")
+    if bot and left:
+        data[Sy] = data[Sy].replace("S", "7")
+    if top and right:
+        data[Sy] = data[Sy].replace("S", "L")
+    if top and left:
+        data[Sy] = data[Sy].replace("S", "J")
+    if left and right:
+        data[Sy] = data[Sy].replace("S", "-")
+
+    print()
+
+    inside = set()
+    for y, line in enumerate(data):
+        for x, char in enumerate(line):
+            if (y,x) in positions: continue
+            dir = -1 if x<len(data)/2 else 1
+            crosses = 0
+            xn = x+dir
+            skip = False
+            h_entry = ""
+            while xn >= 0 and xn < len(data[0]):
+                #already hit this point and not crossed outside
+                if data[y][xn] in inside and crosses%2 == 0:
+                    inside.add((y,x))
+                    skip = True
+                    break
+                #standard line cross
+                if (y,xn) in positions:
+                    c = data[y][xn]
+                    if c == "|":
+                        assert h_entry == "", (h_entry, (y,x), (y,xn))
+                        crosses += 1
+                    elif c == "-":
+                        assert h_entry != ""
+                    elif c in "JLF7":
+                        if h_entry == "":
+                            h_entry = c
+                        else:
+                            #crosses still
+                            if h_entry in "JL" and c in "F7" or\
+                               h_entry in "F7" and c in "JL":
+                               crosses += 1
+                            h_entry = ""
+                else:
+                    assert h_entry == ""
+
+                xn += dir
+
+            if skip:
+                continue
+
+            assert h_entry == ""
+            #at least 1 cross means inside
+            if crosses % 2 == 1:
+                inside.add((y,x))
+
+            
+    return len(inside)
 
 if __name__ == "__main__":
     data = get_data()
