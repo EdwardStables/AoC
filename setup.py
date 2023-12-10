@@ -28,7 +28,8 @@ def get_args():
     parser.add_argument("--test", "-t", action="store_true", help="Run the given day with input of 'test.txt'")
     parser.add_argument("--regression", action="store_true", help="Like --run, but runs all days, saves a timestamped dataset")
     parser.add_argument("--count", "-c", type=int, default=1, help="Sets number of tests to run for regression or test")
-    parser.add_argument("--benchmark", action="store_true", help="Run timeit on the given day to get a good runtime. Excludes file loading")
+    parser.add_argument("--profile", action="store_true", help="Run cProfile on given day")
+    parser.add_argument("--part", type=int, help="Used for profiling. Part 1 or 2. Defaults to 2.", default=2)
 
     return parser.parse_args()
 
@@ -79,69 +80,68 @@ if __name__ == "__main__":
         f.write(template)
     file_path.chmod(0o777)
 
-def run(day, year, fname="data.txt"):
-    from timeit import default_timer as time
+def get_run_funcs(day, year, fname="data.txt"):
     task = get_task(year, day)
     test_path =  Path("year_" + str(year)) / f"day_{day:02}" / fname
+
     if fname == "test.txt" and not test_path.exists():
         a_fname = "testa.txt"
     else:
         a_fname = fname
-    data = task.get_data(fname=a_fname)
-
-    t1 = time()
-    a_res = task.main_a(data) 
-    a_time = (time() - t1) * 1000
+    a_data = task.get_data(fname=a_fname)
+    a = task.main_a
 
     if fname == "test.txt" and not test_path.exists():
         b_fname = "testb.txt"
     else:
         b_fname = fname
-    data = task.get_data(fname=b_fname) 
-    t1 = time()
-    b_res = task.main_b(data) 
-    b_time = (time() - t1) * 1000
+    b_data = task.get_data(fname=b_fname) 
+    b = task.main_b
 
-    return [(a_time, a_res), (b_time, b_res)]
+    return [(a,a_data), (b,b_data)]
 
 def run_day(day, year, count, fname="data.txt"):
+    from timeit import default_timer as time
     print(f"Year {year} Day {day} {'(test)' if fname != 'data.txt' else ''}")
     a_runs = []
     b_runs = []
-    a_res = None
-    b_res = None
+    a_result = None
+    b_result = None
     for i in range(count):
-        a, b = run(day, year, fname=fname)
-        a_runs.append(a[0])
-        b_runs.append(b[0])
-        if i == 0:
-            a_res = a[1]
-            b_res = b[1]
-        else:
-            assert a_res == a[1]
-            assert b_res == b[1]
+        (a, a_data), (b, b_data) = get_run_funcs(day, year, fname=fname)
 
-    print(f"a: {(sum(a_runs)/count):07.3f}ms          {a_res}")
-    print(f"b: {(sum(b_runs)/count):07.3f}ms          {b_res}")
+        t1 = time()
+        a_res = a(a_data)
+        a_time = (time() - t1) * 1000
+
+        t1 = time()
+        b_res = b(b_data)
+        b_time = (time() - t1) * 1000
+
+        a_runs.append(a_time)
+        b_runs.append(b_time)
+        if i == 0:
+            a_result = a_res
+            b_result = b_res
+        else:
+            assert a_result == a[1]
+            assert b_result == b[1]
+
+    print(f"a: {(sum(a_runs)/count):07.3f}ms          {a_result}")
+    print(f"b: {(sum(b_runs)/count):07.3f}ms          {b_result}")
     print(f"{count} Run(s)")
 
-def run_benchmark(day, year):
-    from timeit import timeit
-    from math import floor
-    task = get_task(year, day)
-    sample_time = run(day, year)
-    a_reps = floor(5000/sample_time[0][0])
-    b_reps = floor(5000/sample_time[1][0])
+def run_profile(day, year, a_not_b, fname="data.txt"):
+    import cProfile
+    (a, a_data), (b, b_data) = get_run_funcs(day, year, fname=fname)
 
-    data = task.get_data()
-    a_time = 1000 * timeit(lambda: task.main_a(data), number = a_reps)/a_reps
-    data = task.get_data() 
-    b_time = 1000 * timeit(lambda: task.main_b(data), number = b_reps)/b_reps
-
-
-    print(f"Year {year} Day {day} Benchmark")
-    print(f"a: {a_time:07.3f}ms  {a_reps} runs")
-    print(f"b: {b_time:07.3f}ms  {b_reps} runs")
+    pr = cProfile.Profile()
+    if a_not_b:
+        pr.runctx("a(a_data)", globals(), locals())
+    else:
+        pr.runctx("b(b_data)", globals(), locals())
+    pr.print_stats()
+    pr.dump_stats(f"part_{'a' if a_not_b else 'b'}.prof")
 
 def run_regression(year, day=None, count=1):
     days = [int(d.split("_")[1]) for d in listdir(f"year_{year}") if d.startswith("day")]
@@ -243,8 +243,10 @@ def main():
             run_regression(args.year, day=args.day, count=args.count)
         else:
             run_regression(args.year, count=args.count)
-    elif args.benchmark:
-        run_benchmark(args.day, args.year)
+    elif args.profile:
+        if args.day is None:
+            raise ArgumentError("Argument 'profile' requires --day N argument")
+        run_profile(args.day, args.year, args.part == 1, fname="test.txt")
 
 if __name__ == "__main__":
     main()
