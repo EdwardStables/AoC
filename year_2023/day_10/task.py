@@ -57,13 +57,18 @@ def main_b(data):
     if left and right:
         data[Sy] = data[Sy].replace("S", "-")
 
-    inside = set()
+    ddata = [["." for _ in data[0]] for _ in data]
+    for y, x in positions:
+        ddata[y][x] = data[y][x]
+    data = ddata
+
+    count = 0
     for y, line in enumerate(data):
         cross = False
         h_entry = ""
         for x, c in enumerate(line):
             #standard line cross
-            if (y,x) in positions:
+            if c != ".":
                 if c == "|":
                     assert h_entry == "", (h_entry, (y,x))
                     cross = not cross
@@ -82,10 +87,10 @@ def main_b(data):
                 assert h_entry == ""
                 #only add to considered if it is on the same side of the line
                 if cross:
-                    inside.add((y,x))
+                    count += 1
 
             
-    return len(inside)
+    return count
 
 if __name__ == "__main__":
     data = get_data()
