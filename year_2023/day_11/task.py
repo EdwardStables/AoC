@@ -45,17 +45,28 @@ def expanded_cols(data):
 
     return cols
         
-def get_positions(data):
+def get_positions(data, expand):
     positions = []
+    rows = expanded_rows(data)
+    cols = expanded_cols(data)
+    row_index = 0
+    row_offset = 0
     for y, row in enumerate(data):
+        if row_index < len(rows) and  y == rows[row_index]:
+            row_offset += expand-1
+            row_index += 1
+        col_index = 0
+        col_offset = 0
         for x, char in enumerate(row):
+            if col_index < len(cols) and x == cols[col_index]:
+                col_offset += expand-1
+                col_index += 1
             if char == "#":
-                positions.append((y,x))
+                positions.append((y+row_offset,x+col_offset))
     return positions
 
-def main_a(data):
-    data = expand(data)
-    positions = get_positions(data)
+def run(data, expand):
+    positions = get_positions(data, expand)
     
     s = 0
     for i, (y,x) in enumerate(positions):
@@ -68,38 +79,13 @@ def main_a(data):
     
     return s
 
+def main_a(data):
+    return run(data, 2)
+
 def main_b(data):
     #100 for test
     factor = 100 if len(data) == 10 else 1000000
-    factor -= 1 #stop extra row/col counting after expansion
-    rows = expanded_rows(data)
-    cols = expanded_cols(data)
-    positions = get_positions(data)
-    s = 0
-    for i, (y,x) in enumerate(positions):
-        for j, (_y,_x) in enumerate(positions[i:]):
-            j += i
-            if i==j: continue
-            y_hi = max(y,_y)
-            y_lo = min(y,_y)
-            x_hi = max(x,_x)
-            x_lo = min(x,_x)
-
-            y_off_count = 0
-            for r in rows:
-                if r > y_lo and r < y_hi:
-                    y_off_count += 1
-            x_off_count = 0
-            for c in cols:
-                if c > x_lo and c < x_hi:
-                    x_off_count += 1
-
-            disty =  (y_hi + (factor*y_off_count) - y_lo)
-            distx = (x_hi + (factor*x_off_count) - x_lo)
-
-            s += disty + distx
-
-    return s
+    return run(data, factor)
 
 if __name__ == "__main__":
     data = get_data()
