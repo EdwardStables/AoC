@@ -29,19 +29,23 @@ def expand(data):
 
 def expanded_rows(data):
     rows = []
-    for y, row in enumerate(data):
+    last = 0
+    for row in data:
         if row.count("#") == 0:
-            rows.append(y)
+            last += 1
+        rows.append(last)
     return rows
 
 def expanded_cols(data):
     cols = []
+    last = 0
     for c in range(len(data[0])):
         for row in data:
             if row[c] == "#":
                 break
         else:
-            cols.append(c)
+            last += 1
+        cols.append(last)
 
     return cols
         
@@ -49,20 +53,11 @@ def get_positions(data, expand):
     positions = []
     rows = expanded_rows(data)
     cols = expanded_cols(data)
-    row_index = 0
-    row_offset = 0
-    for y, row in enumerate(data):
-        if row_index < len(rows) and  y == rows[row_index]:
-            row_offset += expand-1
-            row_index += 1
-        col_index = 0
-        col_offset = 0
-        for x, char in enumerate(row):
-            if col_index < len(cols) and x == cols[col_index]:
-                col_offset += expand-1
-                col_index += 1
+    for (y, row), row_offset in zip(enumerate(data), rows):
+        for (x, char), col_offset in zip(enumerate(row), cols):
             if char == "#":
-                positions.append((y+row_offset,x+col_offset))
+                positions.append((y+(expand-1)*row_offset,x+(expand-1)*col_offset))
+
     return positions
 
 def run(data, expand):
