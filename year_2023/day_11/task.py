@@ -4,7 +4,7 @@ def get_data(fname = "data.txt"):
     with open(f"year_2023/day_11/{fname}") as f:
         return [l.strip() for l in f]
 
-def expand(data: list[str]):
+def expand(data):
     new_data = []
     for row in data:
         new_data.append([i for i in row])
@@ -27,14 +27,14 @@ def expand(data: list[str]):
 
     return new_data
 
-def expanded_rows(data: list[str]):
+def expanded_rows(data):
     rows = []
     for y, row in enumerate(data):
         if row.count("#") == 0:
             rows.append(y)
     return rows
 
-def expanded_cols(data: list[str]):
+def expanded_cols(data):
     cols = []
     for c in range(len(data[0])):
         for row in data:
