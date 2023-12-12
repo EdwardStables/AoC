@@ -5,89 +5,67 @@ def get_data(fname = "data.txt"):
     with open(f"year_2023/day_12/{fname}") as f:
         return [l.strip() for l in f]
 
+def cache_call(pattern: str, remaining: tuple[int], in_pattern, cache: dict[str,dict[tuple[int],int]]):
+    cache_result = None
+    if pattern in cache and remaining in cache[pattern] and int(in_pattern) in cache[pattern][remaining]:
+        cache_result = cache[pattern][remaining][int(in_pattern)]
+        return cache_result
+
+    result = run_pattern(pattern, remaining, in_pattern, cache)
+    if pattern not in cache:
+        cache[pattern] = {}
+    if remaining not in cache[pattern]:
+        cache[pattern][remaining] = {}
+    cache[pattern][remaining][int(in_pattern)] = result
+
+    return result
+
+def run_pattern(pattern: str, remaining: tuple[int], in_pattern, cache: dict[str,dict[tuple[int],int]]):
+    if len(pattern) == 0:
+        if len(remaining) == 0 or len(remaining) == 1 and remaining[0] == 0:
+            return 1
+        else:
+            return 0
+
+    if in_pattern:
+        if len(remaining) > 0 and remaining[0] != 0:
+            if pattern[0] == ".":
+                return 0
+
+    if pattern[0] == ".":
+        if len(remaining) > 0 and remaining[0] == 0:
+            nr = tuple(r for r in remaining[1:])
+        else:
+            nr = tuple(r for r in remaining)
+        return cache_call(pattern[1:], nr, False, cache)
+    
+    if pattern[0] == "#":
+        if len(remaining) == 0: return 0
+        if remaining[0] == 0: return 0
+        nr = (remaining[0]-1,) + tuple(r for r in remaining[1:])
+        return cache_call(pattern[1:], nr, True, cache)
+
+    if pattern[0] == "?":
+        a = cache_call("#" + pattern[1:], remaining, in_pattern, cache)
+        b = cache_call("." + pattern[1:], remaining, in_pattern, cache)
+        return a + b
+
+    assert False
+
+
 def run(data):
-    final_count = 0
-
-    class entry:
-        def __init__(self, pattern, index=0, parent=None):
-            self.pattern = pattern
-            self.index = index 
-            self.parent = None
-        def s(self): return self.pattern[self.index]
-        def r(self, replace): self.pattern = self.pattern[:self.index] + replace + self.pattern[self.index+1:]
-        def l(self): return len(self.pattern)
-        def c(self): return self.index
-        def i(self): self.index += 1
-        def __repr__(self): return self.pattern + " " + str(self.index)
-
+    s = 0
+    cache = {}
     for lineno, (pattern, widths) in enumerate(data):
-        print(lineno)
-        count = 0
-        options = [entry(pattern)]
-        cache = {}
-        while len(options) > 0:
-            op = options.pop(-1)            
-            ops = []
-
-            #it's valid, leave it out and increment count
-            if op.c() == op.l():
-                print("valid")
-                count += 1
-                continue
-
-            if op.c() == len(pattern)/2:
-                cache[op.pattern[op.c():]] = 0
-
-            #if it starts with a ? then push back both options
-            if op.s() == "?":
-                dot = entry(op.pattern, op.index)
-                hash = entry(op.pattern, op.index)
-                dot.r(".")
-                hash.r("#")
-                dot.i()
-                hash.i()
-                ops.append(dot)
-                ops.append(hash)
-            #if it starts with a . or # then just inc
-            if op.s() in "#.":
-                op.i()
-                ops.append(op)
-
-            #validate ops
-            for op in ops:
-                lw = copy(widths)
-                last = "."
-                for i in range(op.c()):
-                    if op.pattern[i] == "." and last == "#":
-                        if lw[0] != 0:
-                            break
-                        lw.pop(0)
-                    elif op.pattern[i] == "#":
-                        if len(lw) <= 0:
-                            break
-                        if lw[0] <= 0:
-                            break
-                        lw[0] -= 1
-                    if (len(op.pattern) - (i+1)) < (sum(lw) + len(lw) - 1):
-                        break
-                    
-                    last = op.pattern[i]
-                    assert op.pattern[i] != "?"
-                else:
-                    options.append(op)
-                
-
-
-        final_count += count    
-
-    return final_count
+        r = run_pattern(pattern, widths, False, cache)
+        s += r
+    return s
 
 def main_a(data):
-    return 0
     new_data = []
     for line in data:
         pattern, widths = line.split()
-        widths = [int(i) for i in widths.split(",")]
+        widths = tuple(int(i) for i in widths.split(","))
         new_data.append((pattern, widths))
     return run(new_data)
 
@@ -96,7 +74,7 @@ def main_b(data):
     for line in data:
         pattern, widths = line.split()
         pattern = "?".join([pattern]*5)
-        widths = [int(i) for i in widths.split(",")]*5
+        widths = tuple([int(i) for i in widths.split(",")]*5)
         new_data.append((pattern, widths))
     return run(new_data)
 
