@@ -20,16 +20,17 @@ def run(data):
         def __repr__(self): return self.pattern + " " + str(self.index)
 
     for lineno, (pattern, widths) in enumerate(data):
+        print(lineno)
         count = 0
         options = [entry(pattern)]
-
+        cache = {}
         while len(options) > 0:
-            #input()
             op = options.pop(-1)            
             ops = []
 
             #it's valid, leave it out and increment count
             if op.c() == op.l():
+                print("valid")
                 count += 1
                 continue
 
@@ -78,6 +79,7 @@ def run(data):
     return final_count
 
 def main_a(data):
+    return 0
     new_data = []
     for line in data:
         pattern, widths = line.split()
@@ -86,7 +88,13 @@ def main_a(data):
     return run(new_data)
 
 def main_b(data):
-    return 0
+    new_data = []
+    for line in data:
+        pattern, widths = line.split()
+        pattern = "?".join([pattern]*5)
+        widths = [int(i) for i in widths.split(",")]*5
+        new_data.append((pattern, widths))
+    return run(new_data)
 
 if __name__ == "__main__":
     data = get_data()
