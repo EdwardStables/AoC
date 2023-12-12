@@ -9,9 +9,10 @@ def run(data):
     final_count = 0
 
     class entry:
-        def __init__(self, pattern, index=0):
+        def __init__(self, pattern, index=0, parent=None):
             self.pattern = pattern
             self.index = index 
+            self.parent = None
         def s(self): return self.pattern[self.index]
         def r(self, replace): self.pattern = self.pattern[:self.index] + replace + self.pattern[self.index+1:]
         def l(self): return len(self.pattern)
@@ -33,6 +34,9 @@ def run(data):
                 print("valid")
                 count += 1
                 continue
+
+            if op.c() == len(pattern)/2:
+                cache[op.pattern[op.c():]] = 0
 
             #if it starts with a ? then push back both options
             if op.s() == "?":
