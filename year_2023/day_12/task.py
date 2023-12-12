@@ -5,7 +5,7 @@ def get_data(fname = "data.txt"):
     with open(f"year_2023/day_12/{fname}") as f:
         return [l.strip() for l in f]
 
-def main_a(data):
+def run(data):
     final_count = 0
 
     class entry:
@@ -19,11 +19,7 @@ def main_a(data):
         def i(self): self.index += 1
         def __repr__(self): return self.pattern + " " + str(self.index)
 
-    for lineno, line in enumerate(data):
-    #for line in [data[-1]]:
-        pattern, widths = line.split()
-        widths = [int(i) for i in widths.split(",")]
-
+    for lineno, (pattern, widths) in enumerate(data):
         count = 0
         options = [entry(pattern)]
 
@@ -80,6 +76,14 @@ def main_a(data):
         final_count += count    
 
     return final_count
+
+def main_a(data):
+    new_data = []
+    for line in data:
+        pattern, widths = line.split()
+        widths = [int(i) for i in widths.split(",")]
+        new_data.append((pattern, widths))
+    return run(new_data)
 
 def main_b(data):
     return 0
