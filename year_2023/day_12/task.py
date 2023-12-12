@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from copy import copy
+from functools import cache
 
 def get_data(fname = "data.txt"):
     with open(f"year_2023/day_12/{fname}") as f:
@@ -20,7 +21,8 @@ def cache_call(pattern: str, remaining: tuple[int], in_pattern, cache: dict[str,
 
     return result
 
-def run_pattern(pattern: str, remaining: tuple[int], in_pattern, cache: dict[str,dict[tuple[int],int]]):
+@cache
+def run_pattern(pattern: str, remaining: tuple[int], in_pattern):
     if len(pattern) == 0:
         if len(remaining) == 0 or len(remaining) == 1 and remaining[0] == 0:
             return 1
@@ -37,17 +39,17 @@ def run_pattern(pattern: str, remaining: tuple[int], in_pattern, cache: dict[str
             nr = tuple(r for r in remaining[1:])
         else:
             nr = tuple(r for r in remaining)
-        return cache_call(pattern[1:], nr, False, cache)
+        return run_pattern(pattern[1:], nr, False)
     
     if pattern[0] == "#":
         if len(remaining) == 0: return 0
         if remaining[0] == 0: return 0
         nr = (remaining[0]-1,) + tuple(r for r in remaining[1:])
-        return cache_call(pattern[1:], nr, True, cache)
+        return run_pattern(pattern[1:], nr, True)
 
     if pattern[0] == "?":
-        a = cache_call("#" + pattern[1:], remaining, in_pattern, cache)
-        b = cache_call("." + pattern[1:], remaining, in_pattern, cache)
+        a = run_pattern("#" + pattern[1:], remaining, in_pattern)
+        b = run_pattern("." + pattern[1:], remaining, in_pattern)
         return a + b
 
     assert False
@@ -55,9 +57,8 @@ def run_pattern(pattern: str, remaining: tuple[int], in_pattern, cache: dict[str
 
 def run(data):
     s = 0
-    cache = {}
     for lineno, (pattern, widths) in enumerate(data):
-        r = run_pattern(pattern, widths, False, cache)
+        r = run_pattern(pattern, widths, False)
         s += r
     return s
 
