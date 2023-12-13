@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.9
 from pathlib import Path
 from argparse import ArgumentError, ArgumentParser
 from requests import get
@@ -58,7 +58,7 @@ def create_template(day: int, year:int, data: str):
         create_script_template(p, year, day)
 
 def create_script_template(file_path: Path, year, day):
-    template = f"""#!/usr/bin/env python3
+    template = f"""#!/usr/bin/env python3.9
 
 def get_data(fname = "data.txt"):
     with open(f"year_{year}/day_{day:02}/{{fname}}") as f:
