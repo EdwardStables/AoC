@@ -41,7 +41,38 @@ def main_a(data):
     return weight(rows)
 
 def main_b(data):
-    return 0
+    weights = []
+    for i in range(1000000000):
+        for j in range(4):
+            data = rotate_cw(data)
+            data = shift_right(data)
+
+        weights.append(weight(rotate_cw(data)))
+        if i < 100:
+            continue
+
+        for first, w in enumerate(weights):
+            if weights.count(w) == 1:
+                continue
+            try:
+                second = weights.index(w, first+1)
+            except ValueError:
+                continue
+
+            length = second - first
+
+            if length < 3:
+                continue            
+
+            for i in range(first, second+1):
+                if i + length >= len(weights):
+                    break
+                if weights[i] != weights[i+length]:
+                    break
+            else:
+                #found a sequence which seems to work
+                ind = (1000000000 - first - 1) % length
+                return weights[ind+first]
 
 if __name__ == "__main__":
     data = get_data()
