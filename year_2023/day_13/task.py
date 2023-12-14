@@ -4,7 +4,7 @@ def get_data(fname = "data.txt"):
     with open(f"year_2023/day_13/{fname}") as f:
         return [l.strip() for l in f]
 
-def find_reflection(nums, diffs, pt2=False):
+def find_reflection(nums, pt2=False):
     ls = 0
     rs = 1
     while rs < len(nums):
@@ -15,11 +15,16 @@ def find_reflection(nums, diffs, pt2=False):
             if nums[_ls] != nums[_rs]:
                 if not pt2: break
                 if smudged: break
-                diff = abs(nums[_ls] - nums[_rs])
-                if diff in diffs:
-                    print(ls, rs, _ls, _rs, nums)
-                    smudged = True
-                else:
+                
+                error = False
+                for a,b in zip(nums[_ls], nums[_rs]):
+                    if a!=b:
+                        if not smudged:
+                            smudged = True
+                        else:
+                            error = True
+                            break
+                if error:
                     break
             _ls -= 1
             _rs += 1
@@ -30,54 +35,36 @@ def find_reflection(nums, diffs, pt2=False):
         rs += 1
     return None
 
-def run_pattern(data, diffs, pt2=False):
-    v_nums = []
-    for row in data:
-        n = 0
-        i = 0
-        for char in row[::-1]:
-            if char == "#":
-                n += 2**i
-            i+=1
-        v_nums.append(n)
-    print("rows", v_nums)
-    ref = find_reflection(v_nums, diffs, pt2=pt2)
-    print(ref)
+def run_pattern(data, pt2=False):
+    ref = find_reflection(data, pt2=pt2)
     if ref is not None:
         return 100 * ref[0]
 
-    h_nums = []
+    new_data = []
     for c in range(len(data[0])):
-        n = 0
-        i = 0
+        nd = ""
         for row in data:
             char = row[c]
-            if char == "#":
-                n += 2**i
-            i+=1
-        h_nums.append(n)
-    print("cols")
-    ref = find_reflection(h_nums, diffs, pt2=pt2)
-    print(ref)
+            nd += char
+        new_data.append(nd)
+    ref = find_reflection(new_data, pt2=pt2)
     return ref[0]
 
 def run(data, pt2):
+    data.append("")
     s = 0
     pattern = []
-    print("pat")
-    diffs = [2**i for i in range(max(len(data), len(data[0])))]
+    c = 0
     for row in data:
         if row == "":
-            s+= run_pattern(pattern, diffs, pt2=pt2)
-            print("pat")
+            s += run_pattern(pattern, pt2=pt2)
             pattern = []
+            c += 1
         else:
             pattern.append(row)
-    s+=run_pattern(pattern, diffs, pt2=pt2)
     return s
 
 def main_a(data):
-    return 0
     return run(data, False)
 
 def main_b(data):
