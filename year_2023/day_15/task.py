@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from collections import OrderedDict
 
 def get_data(fname = "data.txt"):
     with open(f"year_2023/day_15/{fname}") as f:
@@ -12,12 +11,11 @@ def main_a(data):
         for c in p:
             d += ord(c)
             d *= 17
-            d %= 256
-        s += d
+        s += d % 256
     return s
 
 def main_b(data):
-    boxes = [OrderedDict() for _ in range(256)]
+    boxes = [{} for _ in range(256)]
     for p in data[0].split(","):
         if "-" in p:
             l = p.split("-")[0]
@@ -29,7 +27,7 @@ def main_b(data):
         for c in l:
             hash += ord(c)
             hash *= 17
-            hash %= 256
+        hash %= 256
 
         if f is None:
             if l in boxes[hash]:
