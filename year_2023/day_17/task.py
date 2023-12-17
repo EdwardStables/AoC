@@ -37,6 +37,37 @@ class Point:
             p.parent = self
 
         return ps
+    def next2(self, data):
+        ps = [] 
+
+        if self.dist < 3:
+            if self.dir == 1 and self.y > 0:
+                ps.append(Point(self.y-1, self.x, 1, 0 if self.dir != 1 else self.dist+1, 0))
+            elif self.dir == 3 and self.y < len(data)-1:
+                ps.append(Point(self.y+1, self.x, 3, 0 if self.dir != 3 else self.dist+1, 0))
+            elif self.dir == 2 and self.x > 0:
+                ps.append(Point(self.y, self.x-1, 2, 0 if self.dir != 2 else self.dist+1, 0))
+            elif self.dir == 0 and self.x < len(data[0])-1:
+                ps.append(Point(self.y, self.x+1, 0, 0 if self.dir != 0 else self.dist+1, 0))
+        else:
+            if self.y > 0 and not (self.dir==1 and self.dist == 9) and self.dir != 3:
+                ps.append(Point(self.y-1, self.x, 1, 0 if self.dir != 1 else self.dist+1, 0))
+
+            if self.y < len(data)-1 and not (self.dir==3 and self.dist == 9) and self.dir != 1:
+                ps.append(Point(self.y+1, self.x, 3, 0 if self.dir != 3 else self.dist+1, 0))
+
+            if self.x > 0 and not (self.dir==2 and self.dist == 9) and self.dir != 0:
+                ps.append(Point(self.y, self.x-1, 2, 0 if self.dir != 2 else self.dist+1, 0))
+
+            if self.x < len(data[0])-1 and not (self.dir==0 and self.dist == 9) and self.dir != 2:
+                ps.append(Point(self.y, self.x+1, 0, 0 if self.dir != 0 else self.dist+1, 0))
+
+        for p in ps:
+            p.cost = self.cost + int(data[p.y][p.x])
+            p.parent = self
+
+        return ps
+
     def at(self, data):
         return data[self.y][self.x]
     def pos(self):
@@ -105,7 +136,44 @@ def main_a(data):
     return last.cost
 
 def main_b(data):
-    return 0
+    points = {}
+    to_check = [
+        Point(0,0,0,0,0),
+        Point(0,0,3,0,0),
+    ]
+    for tc in to_check:
+        points[hash(tc)] = tc
+
+    last = None
+    while len(to_check):
+        l = len(to_check)
+
+        point = to_check.pop(0)
+        next = point.next2(data)
+        if point.y == len(data)-1 and point.x == len(data[0])-1 and \
+            (last is None or point.cost < last.cost):
+            last = point
+        for p in next:
+            if hash(p) not in points or\
+                 p.cost < points[hash(p)].cost:
+                points[hash(p)] = p
+                to_check.append(p)
+
+    path = set()
+    next = last
+    while next is not None:
+        path.add(next.pos())
+        next = next.parent
+    for y, row in enumerate(data):
+        s = ""
+        for x, char in enumerate(row):
+            if (y,x) in path:
+                s += "#"
+            else:
+                s += char
+        #print(s)
+
+    return last.cost
 
 if __name__ == "__main__":
     data = get_data()
