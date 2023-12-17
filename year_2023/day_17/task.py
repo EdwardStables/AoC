@@ -41,6 +41,8 @@ class Point:
         return data[self.y][self.x]
     def pos(self):
         return (self.y, self.x)
+    def __hash__(self):
+        return hash((self.y, self.x, self.dir, self.dist))
     def __repr__(self):
         s = f"{self.y} {self.x} "
         if self.dir == 0:
@@ -63,32 +65,24 @@ def main_a(data):
         Point(0,0,3,0,0),
     ]
     for tc in to_check:
-        points[tc.pos()] = tc
+        points[hash(tc)] = tc
 
+    last = None
     while len(to_check):
         l = len(to_check)
-        if l % 100 == 0:
-            print(l)
-        #print(points)
-        #print(to_check)
-        #input()
         point = to_check.pop(0)
         next = point.next(data)
-        if False and point.pos()==(4,11):
-            print(point)
-            print(data[point.y][point.x])
-            print(next)
-            input()
+        if point.y == len(data)-1 and point.x == len(data[0])-1 and \
+            (last is None or point.cost < last.cost):
+            last = point
         for p in next:
-            if p.pos() not in points:
-                points[p.pos()] = p
-                to_check.append(p)
-            elif p.cost < points[p.pos()].cost:
-                points[p.pos()] = p
+            if hash(p) not in points or\
+                 p.cost < points[hash(p)].cost:
+                points[hash(p)] = p
                 to_check.append(p)
 
     path = set()
-    next = points[(len(data)-1,len(data[0])-1)]
+    next = last
     while next is not None:
         path.add(next.pos())
         next = next.parent
@@ -100,16 +94,15 @@ def main_a(data):
                 s += "#"
             else:
                 s += data[y][x]
-        print(s)
 
 
-    for y in range(len(data)):
-        s = []
-        for x in range(len(data[0])):
-            s.append(points[(y,x)].cost)
-        print(s)
+    #for y in range(len(data)):
+    #    s = []
+    #    for x in range(len(data[0])):
+    #        s.append(points[(y,x)].cost)
+    #    print(s)
 
-    return points[(len(data)-1,len(data[0])-1)].cost
+    return last.cost
 
 def main_b(data):
     return 0
