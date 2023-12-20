@@ -110,6 +110,7 @@ def main_b(data):
     nodes = setup(data)
     #visualise(data)
 
+    #values decided by inspecting graphviz output
     targets = {"th":[0,0], "gh":[0,0], "sv":[0,0], "ch":[0,0]}
 
     count = 0
