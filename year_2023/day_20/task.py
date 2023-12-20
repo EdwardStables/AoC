@@ -44,7 +44,7 @@ class Node:
     
 
 
-def setup(data):
+def setup(data) -> dict[str,Node]:
     nodes = {}
     for line in data:
         nnode = Node(line)
@@ -81,30 +81,58 @@ def main_a(data):
 
     return high_count * low_count
 
+def visualise(nodes):
+    import graphviz
+    all_nodes = set(["broadcaster"])
+    for node in nodes.values(): 
+        for output in node.outputs:
+            all_nodes.add(output)
+
+    dot = graphviz.Digraph()
+    for n in all_nodes:
+        if n=="broadcaster" or n not in nodes:
+            c = "orange"
+        elif nodes[n].ff_n_con:
+            c = "green"
+        else:
+            c = "red"
+        dot.node(n, style="filled",color=c)
+
+    for n in nodes.values():
+        for o in n.outputs:
+            dot.edge(n.name, o)
+
+    dot.render("output.gv")
+
+from math import lcm
+
 def main_b(data):
     nodes = setup(data)
+    #visualise(data)
+
+    targets = {"th":[0,0], "gh":[0,0], "sv":[0,0], "ch":[0,0]}
+
     count = 0
     while True:
         count += 1
-        rx_low_count = 0
         signals = nodes["broadcaster"].input(False,"")
         while signals:
             new_signals = []
             for dest,sig,src in signals:
-                if dest == "rx" and not sig:
-                    rx_low_count += 1
-
-                #print(src, "high" if sig else "low", dest)
+                for t in targets:
+                    if sig and t == src:
+                        targets[t][1] = targets[t][0] 
+                        targets[t][0] = count
+   
 
                 if dest in nodes:
                     new_signals += nodes[dest].input(sig,src)
             signals = new_signals        
-        
-        print(rx_low_count)
 
-        if rx_low_count == 1:
-            return count
 
+        l = lcm(*[vnew - vold for vnew, vold in targets.values()])
+        if l != 0:
+            return l
 
 if __name__ == "__main__":
     data = get_data()
