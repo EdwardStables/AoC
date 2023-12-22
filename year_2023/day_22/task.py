@@ -24,8 +24,10 @@ class Point:
 
 class Brick:
     def __init__(self, p1: Point, p2: Point):
+        self.strong_supports = set()
         self.strong_support = set()
         self.support = set()
+        self.clearers = set()
         self.xsame = p1.x == p2.x
         self.ysame = p1.y == p2.y
         self.zsame = p1.z == p2.z
@@ -115,6 +117,16 @@ class Brick:
                 break
             point += inc
 
+    def critically_support_tree(self, frm):
+        if frm is not None:
+            self.clearers.add(frm)
+        if frm is not None and \
+            self.clearers != self.strong_support:
+            return 0
+        t = 0 if frm is None else 1
+        for c in self.strong_supports:
+            t += c.critically_support_tree(self)
+        return t
 
 def main_a(data):
     bricks = []
@@ -161,11 +173,6 @@ def main_a(data):
                 b.strong_support.add(b2)
 
     critical = set() 
-    #for b in bricks:
-    #    print()
-    #    print(b)
-    #    print(b.support)
-    #    print(b.strong_support)
 
     for b in bricks:
         if len(b.strong_support) == 1:
@@ -174,7 +181,65 @@ def main_a(data):
     return len(bricks) - len(critical)
 
 def main_b(data):
-    return 0
+    bricks = []
+    for line in data:
+        p1, p2 = line.split("~")
+        p1 = Point(*[int(i) for i in p1.split(",")])
+        p2 = Point(*[int(i) for i in p2.split(",")])
+        bricks.append(Brick(p1, p2))
+
+    bricks: list[Brick]
+
+    #determine what is directly below
+    for b in bricks:
+        for p in b.xypoints():
+            while p.z > 1:
+                p += Point(0,0,-1)
+                for b2 in bricks:
+                    if b2.contains(p):
+                        b.support.add(b2)
+                        break
+                else:
+                    continue
+                break
+
+    changed = True
+    iter = 0
+    while changed:
+        iter += 1
+        changed = False
+        for b in bricks:
+            zmove = b.zmin()-1
+            if zmove == 0: continue
+
+            for b2 in b.support:
+                zmove = min(zmove, b.zmin()-b2.zmax()-1)
+            assert(zmove >= 0)
+            if zmove:
+                b.drop(zmove)
+                changed = True
+
+    for b in bricks:
+        for b2 in b.support:
+            if b2.zmax() == b.zmin()-1:
+                b.strong_support.add(b2)
+                b2.strong_supports.add(b)
+
+    critical = set() 
+
+    for b in bricks:
+        if len(b.strong_support) == 1:
+            critical.add(list(b.strong_support)[0])
+
+    total = 0
+    for c in critical:
+        for b in bricks:
+            b.clearers.clear()
+        t = c.critically_support_tree(None)
+        total += t
+
+    return total
+
 
 if __name__ == "__main__":
     data = get_data()
