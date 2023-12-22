@@ -58,12 +58,14 @@ class Brick:
             return False
         if self.zsame and p.z != self.p1.z:
             return False
-
+        
         if not self.xsame and self.p1.x <= p.x <= self.p2.x:
             return True
         if not self.ysame and self.p1.y <= p.y <= self.p2.y:
             return True
         if not self.zsame and self.p1.z <= p.z <= self.p2.z:
+            return True
+        if self.p1 == self.p2 == p:
             return True
 
         return False
@@ -75,11 +77,27 @@ class Brick:
     def drop(self, count):
         self.p1.z -= count
         self.p2.z -= count
-        assert self.p1.z >= 0
-        assert self.p2.z >= 0
+        assert self.p1.z > 0
+        assert self.p2.z > 0
+        assert self.p2.z >= self.p1.z
 
     def __repr__(self):
         return f"{self.p1}~{self.p2}"
+
+    def points(self)->Iterator[Point]:
+        if not self.xsame:
+            inc = Point(1, 0, 0)
+        if not self.ysame:
+            inc = Point(0, 1, 0)
+        if not self.zsame:
+            inc = Point(0, 0, 1)
+
+        point = self.p1
+        while True:
+            yield point
+            if point == self.p2:
+                break
+            point += inc
 
     def xypoints(self)->Iterator[Point]:
         if not self.xsame:
@@ -87,7 +105,8 @@ class Brick:
         if not self.ysame:
             inc = Point(0, 1, 0)
         if not self.zsame:
-            return self.p1
+            yield self.p1
+            return None
 
         point = self.p1
         while True:
@@ -113,7 +132,7 @@ def main_a(data):
             while p.z > 1:
                 p += Point(0,0,-1)
                 for b2 in bricks:
-                    if b2.contains(p) and b2 not in b.support:
+                    if b2.contains(p):
                         b.support.add(b2)
                         break
                 else:
@@ -121,7 +140,9 @@ def main_a(data):
                 break
 
     changed = True
+    iter = 0
     while changed:
+        iter += 1
         changed = False
         for b in bricks:
             zmove = b.zmin()-1
@@ -129,30 +150,27 @@ def main_a(data):
 
             for b2 in b.support:
                 zmove = min(zmove, b.zmin()-b2.zmax()-1)
-
+            assert(zmove >= 0)
             if zmove:
                 b.drop(zmove)
                 changed = True
 
-    
     for b in bricks:
         for b2 in b.support:
             if b2.zmax() == b.zmin()-1:
                 b.strong_support.add(b2)
 
     critical = set() 
-    for b in bricks:
-        print()
-        print(b)
-        print(b.support)
-        print(b.strong_support)
+    #for b in bricks:
+    #    print()
+    #    print(b)
+    #    print(b.support)
+    #    print(b.strong_support)
 
     for b in bricks:
         if len(b.strong_support) == 1:
             critical.add(b.strong_support.pop())
     
-    print(critical)
-
     return len(bricks) - len(critical)
 
 def main_b(data):
