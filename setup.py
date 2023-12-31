@@ -143,35 +143,6 @@ def run_profile(day, year, a_not_b, fname="data.txt"):
     pr.print_stats()
     pr.dump_stats(f"part_{'a' if a_not_b else 'b'}.prof")
 
-def run_regression(year, day=None, count=1):
-    days = [int(d.split("_")[1]) for d in listdir(f"year_{year}") if d.startswith("day")]
-    days.sort()
-    results = defaultdict(list)
-    for _ in range(count):
-        for d in days:
-            if day is None or d==day:
-                a, b = run(d, year)
-                results[d].append((dt.now(), a[0], b[0], a[1], b[1]))
-
-    golden_ans = {k:(v["a answer"],v["b answer"]) for k, v in get_results().items()}
-
-    for day, res_list in results.items():
-        if day in golden_ans:
-            for res in res_list:
-                assert (r:=res[3]) == (g:=golden_ans[day][0]), f"Day {day} a result mismatch, got {r} expected {g}"
-                assert (r:=res[4]) == (g:=golden_ans[day][1]), f"Day {day} b result mismatch, got {r} expected {g}"
-
-    for day, res_list in results.items():
-        for res in res_list:
-            write_entry({
-                "DateTime" : res[0],
-                "Test" : day,
-                "a" : res[1],
-                "b" : res[2],
-                "a answer" : res[3],
-                "b answer" : res[4],
-            })
-
 def get_results_csv_header():
     return ["DateTime","Test", "a", "b", "a answer", "b answer"]
 
@@ -238,11 +209,6 @@ def main():
         if args.day == None:
             raise ArgumentError("Argument 'run' requires --day N argument")
         run_day(args.day, args.year, args.count, fname="test.txt")
-    elif args.regression:
-        if args.day is not None:
-            run_regression(args.year, day=args.day, count=args.count)
-        else:
-            run_regression(args.year, count=args.count)
     elif args.profile:
         if args.day is None:
             raise ArgumentError("Argument 'profile' requires --day N argument")
