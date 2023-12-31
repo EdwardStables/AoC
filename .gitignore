@@ -4,3 +4,7 @@ data/results.csv
 .wsl
 hardware/
 *prof
+*exe
+*exe.obj
+*pdb
+output.txt

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from timeit import default_timer as time
 from pathlib import Path
 from argparse import ArgumentError, ArgumentParser
 from requests import get
@@ -20,7 +21,7 @@ def get_session_id():
 def get_args():
     parser = ArgumentParser()
     parser.add_argument("--day", "-d", type=int, help="What day to setup")
-    parser.add_argument("--build", "-b", action="store_true", help="Create day template")
+    parser.add_argument("--fetch", "-f", action="store_true", help="Create day template")
     parser.add_argument("--problem", "-p", action="store_true", help="Open the problem statement in the browser")
     parser.add_argument("--leaderboard", "-l", action="store_true", help="Open the leaderboard in the browser")
     parser.add_argument("--year", "-y", type=int, default=dt.now().year)
@@ -30,6 +31,9 @@ def get_args():
     parser.add_argument("--count", "-c", type=int, default=1, help="Sets number of tests to run for regression or test")
     parser.add_argument("--profile", action="store_true", help="Run cProfile on given day")
     parser.add_argument("--part", type=int, help="Used for profiling. Part 1 or 2. Defaults to 2.", default=2)
+
+    parser.add_argument("--build", "-b", action="store_true", help="Build a zig solution, if present")
+    parser.add_argument("--run-zig", "-z", action="store_true", help="Tell --run to use a zig solution, if built")
 
     return parser.parse_args()
 
@@ -80,43 +84,63 @@ if __name__ == "__main__":
         f.write(template)
     file_path.chmod(0o777)
 
-def get_run_funcs(day, year, fname="data.txt"):
+def get_run_funcs(day, year, zig, fname="data.txt"):
     task = get_task(year, day)
     test_path =  Path("year_" + str(year)) / f"day_{day:02}" / fname
+
+    def zig_runner(data, target):
+        cmd = f"cd {test_path.parent} && "
+        cmd += "task.exe"
+        res = Popen(cmd, shell=True)
+        res.wait()
+        output = test_path.parent/"output.txt"
+        if res.returncode != 0 or not output.exists():
+            if not output.exists():
+                print(f"Exitied with code {res.returncode} but output.txt doesn't exist")
+            return 0, 0
+
+        with output.open() as f:
+            result, time = f.read().split()
+        
+        return int(result), int(time)
+
+    def python_runner(data, target):
+        t1 = time()
+        res = target(data)
+        t2 = (time() - t1) * 1000
+        return res, t2
+
+    runner = zig_runner if zig else python_runner
 
     if fname == "test.txt" and not test_path.exists():
         a_fname = "testa.txt"
     else:
         a_fname = fname
     a_data = task.get_data(fname=a_fname)
-    a = task.main_a
+    a = lambda: runner(a_data, task.main_a)
 
     if fname == "test.txt" and not test_path.exists():
         b_fname = "testb.txt"
     else:
         b_fname = fname
     b_data = task.get_data(fname=b_fname) 
-    b = task.main_b
+    b = lambda: runner(b_data, task.main_b)
 
-    return [(a,a_data), (b,b_data)]
+    return [a, b]
 
-def run_day(day, year, count, fname="data.txt"):
-    from timeit import default_timer as time
+
+def run_day(day, year, count, zig, fname="data.txt"):
     print(f"Year {year} Day {day} {'(test)' if fname != 'data.txt' else ''}")
     a_runs = []
     b_runs = []
     a_result = None
     b_result = None
+
+    a,b = get_run_funcs(day, year, zig, fname=fname)
+
     for i in range(count):
-        (a, a_data), (b, b_data) = get_run_funcs(day, year, fname=fname)
-
-        t1 = time()
-        a_res = a(a_data)
-        a_time = (time() - t1) * 1000
-
-        t1 = time()
-        b_res = b(b_data)
-        b_time = (time() - t1) * 1000
+        a_res, a_time = a()
+        b_res, b_time = b()
 
         a_runs.append(a_time)
         b_runs.append(b_time)
@@ -188,6 +212,12 @@ def open_page(url):
     else:
         Popen(f"$BROWSER {url}", shell=True)        
 
+def build_zig(day, year):
+    cmd = f"cd year_{year}/day_{day:02} && "
+    cmd += "zig build-exe task.zig"
+    res = Popen(cmd, shell=True)
+    return res.returncode == 0
+
 def main():
     args = get_args()
     if args.problem:
@@ -196,19 +226,23 @@ def main():
         open_page(f"https://adventofcode.com/{args.year}/day/{args.day}")
     elif args.leaderboard:
         open_page(f"https://adventofcode.com/{args.year}/leaderboard")        
+    elif args.fetch:
+        if args.day == None:
+            raise ArgumentError("Argument 'fetch' requires --day N argument")
+        data = get_data(args.day, args.year, get_session_id())
+        create_template(args.day, args.year, data)
     elif args.build:
         if args.day == None:
             raise ArgumentError("Argument 'build' requires --day N argument")
-        data = get_data(args.day, args.year, get_session_id())
-        create_template(args.day, args.year, data)
+        build_zig(args.day, args.year)
     elif args.run:
         if args.day == None:
             raise ArgumentError("Argument 'run' requires --day N argument")
-        run_day(args.day, args.year, args.count)
+        run_day(args.day, args.year, args.count, args.run_zig)
     elif args.test:
         if args.day == None:
             raise ArgumentError("Argument 'run' requires --day N argument")
-        run_day(args.day, args.year, args.count, fname="test.txt")
+        run_day(args.day, args.year, args.count, args.run_zig, fname="test.txt")
     elif args.profile:
         if args.day is None:
             raise ArgumentError("Argument 'profile' requires --day N argument")
