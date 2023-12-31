@@ -216,6 +216,7 @@ def build_zig(day, year):
     cmd = f"cd year_{year}/day_{day:02} && "
     cmd += "zig build-exe task.zig"
     res = Popen(cmd, shell=True)
+    res.wait()
     return res.returncode == 0
 
 def main():
