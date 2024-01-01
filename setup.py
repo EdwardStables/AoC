@@ -84,31 +84,35 @@ if __name__ == "__main__":
         f.write(template)
     file_path.chmod(0o777)
 
-def get_run_funcs(day, year, zig, fname="data.txt"):
+def get_run_funcs(day, year, count, zig, fname="data.txt"):
     task = get_task(year, day)
     test_path =  Path("year_" + str(year)) / f"day_{day:02}" / fname
 
-    def zig_runner(data, target):
-        cmd = f"cd {test_path.parent} && "
-        cmd += "task.exe"
+    def zig_runner(data, a_not_b):
+        cmd = f"zig-out\\bin\\AoC.exe -y {year} -d {day} {'-a' if a_not_b else '-b'} -c {count} -p year_{year}/day_{day:02}/{fname}"
         res = Popen(cmd, shell=True)
         res.wait()
-        output = test_path.parent/"output.txt"
+        output = Path("output.txt")
         if res.returncode != 0 or not output.exists():
             if not output.exists():
-                print(f"Exitied with code {res.returncode} but output.txt doesn't exist")
+                print(f"Exited with code {res.returncode} but output.txt doesn't exist")
             return 0, 0
 
         with output.open() as f:
-            result, time = f.read().split()
+            time, result = f.read().split()
         
-        return int(result), int(time)
+        return int(result), float(time)
 
-    def python_runner(data, target):
-        t1 = time()
-        res = target(data)
-        t2 = (time() - t1) * 1000
-        return res, t2
+    def python_runner(data, a_not_b):
+        target = task.main_a if a_not_b else task.main_b
+        total_time = 0
+        res = 0
+        for _ in range(count):
+            t1 = time()
+            res = target(data)
+            total_time += (time() - t1)
+
+        return res, total_time * 1000 / count
 
     runner = zig_runner if zig else python_runner
 
@@ -117,42 +121,28 @@ def get_run_funcs(day, year, zig, fname="data.txt"):
     else:
         a_fname = fname
     a_data = task.get_data(fname=a_fname)
-    a = lambda: runner(a_data, task.main_a)
+    a = lambda: runner(a_data, True)
 
     if fname == "test.txt" and not test_path.exists():
         b_fname = "testb.txt"
     else:
         b_fname = fname
     b_data = task.get_data(fname=b_fname) 
-    b = lambda: runner(b_data, task.main_b)
+    b = lambda: runner(b_data, False)
 
     return [a, b]
 
 
 def run_day(day, year, count, zig, fname="data.txt"):
     print(f"Year {year} Day {day} {'(test)' if fname != 'data.txt' else ''}")
-    a_runs = []
-    b_runs = []
-    a_result = None
-    b_result = None
 
-    a,b = get_run_funcs(day, year, zig, fname=fname)
+    a,b = get_run_funcs(day, year, count, zig, fname=fname)
 
-    for i in range(count):
-        a_res, a_time = a()
-        b_res, b_time = b()
+    a_res, a_time = a()
+    b_res, b_time = b()
 
-        a_runs.append(a_time)
-        b_runs.append(b_time)
-        if i == 0:
-            a_result = a_res
-            b_result = b_res
-        else:
-            assert a_result == a_res
-            assert b_result == b_res
-
-    print(f"a: {(sum(a_runs)/count):07.3f}ms          {a_result}")
-    print(f"b: {(sum(b_runs)/count):07.3f}ms          {b_result}")
+    print(f"a: {a_time:07.3f}ms          {a_res}")
+    print(f"b: {b_time:07.3f}ms          {b_res}")
     print(f"{count} Run(s)")
 
 def run_profile(day, year, a_not_b, fname="data.txt"):
@@ -213,8 +203,7 @@ def open_page(url):
         Popen(f"$BROWSER {url}", shell=True)        
 
 def build_zig(day, year):
-    cmd = f"cd year_{year}/day_{day:02} && "
-    cmd += "zig build-exe task.zig"
+    cmd = "zig build -Doptimize=Debug"
     res = Popen(cmd, shell=True)
     res.wait()
     return res.returncode == 0
