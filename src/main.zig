@@ -53,19 +53,24 @@ fn parseArgs(allocator: std.mem.Allocator) !Config {
 }
 
 const RunResult = struct {
-    time: f32,
+    time_ms: f32,
     result: u64,
     allocator: std.mem.Allocator = undefined,
 
     fn format(self: *const RunResult) ![]u8 {
-        return try std.fmt.allocPrint(self.allocator, "{d} {d}", .{ self.time, self.result });
+        return try std.fmt.allocPrint(self.allocator, "{d} {d}", .{ self.time_ms, self.result });
     }
 };
 fn run(config: Config, data: InputData, task: *const fn (data: [][]u8, len: u16) u64) !RunResult {
-    const runtimes: u64 = 0;
+    var runtimes: u64 = 0;
     var result: u64 = undefined;
+    var timer = try std.time.Timer.start();
     for (0..config.count) |i| {
+        timer.reset();
         const local_result = task(data.data, data.len);
+        const tr = timer.read();
+        runtimes += tr;
+
         if (i == 0) {
             result = local_result;
         } else if (local_result != result) {
@@ -73,12 +78,11 @@ fn run(config: Config, data: InputData, task: *const fn (data: [][]u8, len: u16)
         }
     }
 
-    std.debug.print("Got here", .{});
+    const average_time_ns: f32 = @as(f32, @floatFromInt(runtimes)) / (@as(f32, @floatFromInt(config.count)));
+    const average_time_us: f32 = average_time_ns / 1000;
+    const average_time_ms: f32 = average_time_us / 1000;
 
-    const average_time: f64 = runtimes / config.count;
-
-    const res = RunResult{ .time = average_time, .result = result };
-    std.debug.print("And here", .{});
+    const res = RunResult{ .time_ms = average_time_ms, .result = result };
 
     return res;
 }
