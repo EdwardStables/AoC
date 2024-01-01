@@ -16,6 +16,7 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     const clap = b.addModule("clap", .{ .source_file = std.build.LazyPath{ .path = "zig-clap/clap.zig" } });
+    const y23d01 = b.addModule("y23d01", .{ .source_file = std.build.LazyPath{ .path = "year_2023/day_01/task.zig" } });
 
     const exe = b.addExecutable(.{
         .name = "AoC",
@@ -24,8 +25,8 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    const clap_mod = exe.addModule("clap", clap);
-    _ = clap_mod;
+    _ = exe.addModule("clap", clap);
+    _ = exe.addModule("y23d01", y23d01);
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
