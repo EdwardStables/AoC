@@ -6,7 +6,7 @@ from requests import get
 from datetime import datetime as dt
 from os import mkdir, chmod, listdir
 from os.path import isdir, isfile, join
-from subprocess import Popen
+from subprocess import Popen, check_output
 from collections import defaultdict
 import csv
 
@@ -58,8 +58,44 @@ def create_template(day: int, year:int, data: str):
     if not (p := t_dir/"task.py").exists():
         create_script_template(p, year, day)
 
-    if not isfile(p := join(t_dir, "task.py")):
-        create_script_template(p, year, day)
+    if not (p := t_dir/"task.zig").exists():
+        create_zig_template(p, year, day)
+
+def create_zig_template(file_path: Path, year, day):
+        template = """ const std = @import("std");
+const aoc = @import("../../aoc_util.zig");
+const Allocator = std.mem.Allocator;
+
+pub fn task1(_: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors!i64 {
+    var total: u64 = 0;
+
+    for (input.items) |line| {
+        var val = try std.fmt.parseInt(u64, line, 10);
+        val /= 3;
+        val -= 2;
+        total += val;
+    }
+
+    return @as(i64, @intCast(total));
+}
+
+pub fn task2(_: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors!i64 {
+    var total: u64 = 0;
+
+    for (input.items) |line| {
+        var val = try std.fmt.parseInt(u64, line, 10);
+        while (val > 5) {
+            val /= 3;
+            val -= 2;
+            total += val;
+        }
+    }
+
+    return @as(i64, @intCast(total));
+}
+"""
+        with file_path.open('w') as f:
+            f.write(template)
 
 def create_script_template(file_path: Path, year, day):
     template = f"""#!/usr/bin/env python3
@@ -84,24 +120,9 @@ if __name__ == "__main__":
         f.write(template)
     file_path.chmod(0o777)
 
-def get_run_funcs(day, year, count, zig, fname="data.txt"):
+def get_run_funcs(day, year, count, fname="data.txt"):
     task = get_task(year, day)
     test_path =  Path("year_" + str(year)) / f"day_{day:02}" / fname
-
-    def zig_runner(data, a_not_b):
-        cmd = f"zig-out\\bin\\AoC.exe -y {year} -d {day} {'-a' if a_not_b else '-b'} -c {count} -p year_{year}/day_{day:02}/{fname}"
-        res = Popen(cmd, shell=True)
-        res.wait()
-        output = Path("output.txt")
-        if res.returncode != 0 or not output.exists():
-            if not output.exists():
-                print(f"Exited with code {res.returncode} but output.txt doesn't exist")
-            return 0, 0
-
-        with output.open() as f:
-            time, result = f.read().split()
-        
-        return int(result), float(time)
 
     def python_runner(data, a_not_b):
         target = task.main_a if a_not_b else task.main_b
@@ -114,7 +135,7 @@ def get_run_funcs(day, year, count, zig, fname="data.txt"):
 
         return res, total_time * 1000 / count
 
-    runner = zig_runner if zig else python_runner
+    runner = python_runner
 
     if fname == "test.txt" and not test_path.exists():
         a_fname = "testa.txt"
@@ -136,10 +157,24 @@ def get_run_funcs(day, year, count, zig, fname="data.txt"):
 def run_day(day, year, count, zig, fname="data.txt"):
     print(f"Year {year} Day {day} {'(test)' if fname != 'data.txt' else ''}")
 
-    a,b = get_run_funcs(day, year, count, zig, fname=fname)
-
-    a_res, a_time = a()
-    b_res, b_time = b()
+    if not zig:
+        a,b = get_run_funcs(day, year, count, zig, fname=fname)
+        a_res, a_time = a()
+        b_res, b_time = b()
+    else:
+        cmd = f"zig-out/bin/aoc --t1 --t2 --number {count} {'--test' if fname != 'data.txt' else ''}"
+        res = check_output(cmd, shell=True)
+        lines = res.splitlines()
+        assert len(lines) == 3, "Unexpected output size"
+        info_line = lines[0].split()
+        assert int(info_line[1]) == year, "Incorrect year"
+        assert int(info_line[3]) == day, "Incorrect day"
+        t1_line = lines[1].split()
+        t2_line = lines[2].split()
+        a_res = int(t1_line[2])
+        b_res = int(t2_line[2])
+        a_time = float(t1_line[3])
+        b_time = float(t2_line[3])
 
     print(f"a: {a_time:07.3f}ms          {a_res}")
     print(f"b: {b_time:07.3f}ms          {b_res}")
@@ -203,7 +238,7 @@ def open_page(url):
         Popen(f"$BROWSER {url}", shell=True)        
 
 def build_zig(day, year):
-    cmd = "zig build -Doptimize=Debug"
+    cmd = f"zig build -Dyear={year} -Dday={day}"
     res = Popen(cmd, shell=True)
     res.wait()
     return res.returncode == 0

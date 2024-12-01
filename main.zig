@@ -15,6 +15,11 @@ fn get_tasks(comptime year: u32, comptime day: u32) TaskPair {
     const file = switch (year) {
         2019 => switch (day) {
                     1 => @import("year_2019/day_01/task.zig"),
+                    2 => @import("year_2019/day_02/task.zig"),
+                    else => @compileError("Unknown day defined.")
+                },
+        2024 => switch (day) {
+                    //1 => @import("year_2024/day_01/task.zig"),
                     else => @compileError("Unknown day defined.")
                 },
         else => @compileError("Unknown year defined.")
@@ -99,7 +104,7 @@ fn do_run(alloc: std.mem.Allocator, iterations: u64, func: Task, input: *std.Arr
         }
     }
     result.time = @floatFromInt(std.time.microTimestamp() - start_time);
-    result.time /= 1000000;
+    result.time /= 1000;
     result.time /= @floatFromInt(iterations);
 
     return result;
@@ -132,7 +137,7 @@ pub fn main() !void {
                else
                    RunResult{.value=0,.time=0.0};
 
-    try stdout.print("Run {d} Day {d}, {d} Iterations\n", .{config.year, config.day, options.iterations});
+    try stdout.print("Run {d} Day {d} {d} Iterations\n", .{config.year, config.day, options.iterations});
     try stdout.print("1 {s} {d} {e}\n", .{
         if (options.run_task1) "Enabled" else "Disabled",
         t1.value, t1.time});
