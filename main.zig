@@ -82,12 +82,12 @@ fn get_options(alloc: std.mem.Allocator) !Options {
 
 const RunResult = struct {
     value: i64,
-    time: f32
+    time: f32 
 };
 
 fn do_run(alloc: std.mem.Allocator, iterations: u64, func: Task, input: *std.ArrayList([]const u8)) !RunResult {
     var result: RunResult = .{.value=0,.time=0.0};
-    const start_time = 0.0;
+    const start_time = std.time.microTimestamp();
     for (0..iterations) |i| {
         const res = try func(alloc, input);
         if (i == 0) {
@@ -98,7 +98,9 @@ fn do_run(alloc: std.mem.Allocator, iterations: u64, func: Task, input: *std.Arr
             return error.OptionError;
         }
     }
-    result.time = 0.0 - start_time;
+    result.time = @floatFromInt(std.time.microTimestamp() - start_time);
+    result.time /= 1000000;
+    result.time /= @floatFromInt(iterations);
 
     return result;
 }
