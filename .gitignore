@@ -8,5 +8,5 @@ hardware/
 *exe.obj
 *pdb
 output.txt
-zig-cache
+.zig-cache
 zig-out
