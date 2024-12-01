@@ -23,7 +23,7 @@ fn get_tasks(comptime year: u32, comptime day: u32) TaskPair {
 pub fn main() !void {
     const stdout = std.io.getStdOut().writer();
     try stdout.print("hello world\n", .{});
-    const tasks = get_tasks(2019, 1);
+    const tasks = get_tasks(config.year, config.day);
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
 
