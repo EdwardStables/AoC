@@ -3,8 +3,8 @@ const aoc = @import("../../aoc_util.zig");
 const Allocator = std.mem.Allocator;
 
 pub fn task1(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors!i64 {
-    var list1 = std.ArrayList(i64).init(alloc);
-    var list2 = std.ArrayList(i64).init(alloc);
+    var list1 = try std.ArrayList(i64).initCapacity(alloc, input.items.len);
+    var list2 = try std.ArrayList(i64).initCapacity(alloc, input.items.len);
     defer list1.deinit();
     defer list2.deinit();
 
@@ -34,7 +34,7 @@ pub fn task1(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors
 }
 
 pub fn task2(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors!i64 {
-    var list1 = std.ArrayList(i64).init(alloc);
+    var list1 = try std.ArrayList(i64).initCapacity(alloc, input.items.len);
     var list2_counts = std.AutoHashMap(i64, i64).init(alloc);
     defer list1.deinit();
     defer list2_counts.deinit();
