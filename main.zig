@@ -2,11 +2,14 @@ const std = @import("std");
 const config = @import("config");
 const aoc = @import("aoc_util.zig");
 
-const Task = fn(std.mem.Allocator, std.ArrayList([]const u8)) aoc.TaskErrors!i64;
+const Task = fn(std.mem.Allocator, *std.ArrayList([]const u8)) aoc.TaskErrors!i64;
 const TaskPair = struct {
     a: Task,
     b: Task,
 };
+
+const RunnerErrors = error{OptionError, ResultMismatchError};
+
 
 fn get_tasks(comptime year: u32, comptime day: u32) TaskPair {
     const file = switch (year) {
@@ -33,26 +36,105 @@ fn read_input(alloc: std.mem.Allocator, output: *std.ArrayList([]const u8), year
     }
 }
 
+const Options = struct {
+    run_task1: bool = false,
+    run_task2: bool = false,
+    iterations: u32 = 1,
+    test_input: bool = false
+};
+
+fn get_options(alloc: std.mem.Allocator) !Options {
+    var args = try std.process.argsWithAllocator(alloc);
+    defer args.deinit();
+    var options: Options = .{};
+
+    var count_option_on_next = false;
+    var first_arg = true;
+
+    while (args.next()) |arg| {
+        if (first_arg) {
+            first_arg = false;
+            continue;
+        } else
+        if (count_option_on_next) {
+            options.iterations = try std.fmt.parseInt(u32, arg, 10);
+            count_option_on_next = false;
+        } else
+        if (std.mem.eql(u8, arg, "--t1")) {
+            options.run_task1 = true;
+        } else
+        if (std.mem.eql(u8, arg, "--t2")) {
+            options.run_task2 = true;
+        } else
+        if (std.mem.eql(u8, arg, "--test")) {
+            options.test_input = true;
+        } else
+        if (std.mem.eql(u8, arg, "--number")) {
+            count_option_on_next = true;
+        } else {
+            std.log.err("Unknown argument {s}", .{arg});
+            return error.OptionError;
+        }
+    }
+
+    return options;
+}
+
+const RunResult = struct {
+    value: i64,
+    time: f32
+};
+
+fn do_run(alloc: std.mem.Allocator, iterations: u64, func: Task, input: *std.ArrayList([]const u8)) !RunResult {
+    var result: RunResult = .{.value=0,.time=0.0};
+    const start_time = 0.0;
+    for (0..iterations) |i| {
+        const res = try func(alloc, input);
+        if (i == 0) {
+            result.value = res;
+        }
+        else if (res != result.value) {
+            std.log.err("Mismatch error on iteration {d}, value {d} while iteration 0 had result {d}", .{i, res, result.value});
+            return error.OptionError;
+        }
+    }
+    result.time = 0.0 - start_time;
+
+    return result;
+}
+
 pub fn main() !void {
     const stdout = std.io.getStdOut().writer();
-    try stdout.print("hello world\n", .{});
     const tasks = get_tasks(config.year, config.day);
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
 
-    const test_input = false;
+    const options = try get_options(gpa.allocator());
+
     var input = std.ArrayList([]const u8).init(gpa.allocator());
     defer input.deinit();
 
-    try read_input(gpa.allocator(), &input, config.year, config.day, test_input);
+    try read_input(gpa.allocator(), &input, config.year, config.day, options.test_input);
     defer {
         for (input.items) |s| {
             gpa.allocator().free(s);
         }
     }
 
-    const t1_result = try tasks.a(gpa.allocator(), input);
-    const t2_result = try tasks.b(gpa.allocator(), input);
+    const t1 = if (options.run_task1)
+                   try do_run(gpa.allocator(), options.iterations, tasks.a, &input)
+               else
+                   RunResult{.value=0,.time=0.0};
+    const t2 = if (options.run_task2)
+                   try do_run(gpa.allocator(), options.iterations, tasks.b, &input)
+               else
+                   RunResult{.value=0,.time=0.0};
 
-    std.debug.print("Results: {d} {d}\n", .{t1_result, t2_result});
+    try stdout.print("Run {d} Day {d}, {d} Iterations\n", .{config.year, config.day, options.iterations});
+    try stdout.print("1 {s} {d} {e}\n", .{
+        if (options.run_task1) "Enabled" else "Disabled",
+        t1.value, t1.time});
+    try stdout.print("2 {s} {d} {e}\n", .{
+        if (options.run_task2) "Enabled" else "Disabled",
+        t2.value, t2.time});
 }
