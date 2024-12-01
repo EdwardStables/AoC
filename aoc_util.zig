@@ -20,4 +20,7 @@ pub const TaskErrors = error {
     ConnectionResetByPeer,
     ProcessNotFound,
     Unexpected,
+    //Fmt errors
+    Overflow,
+    InvalidCharacter,
 };
