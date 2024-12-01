@@ -34,6 +34,7 @@ def get_args():
 
     parser.add_argument("--build", "-b", action="store_true", help="Build a zig solution, if present")
     parser.add_argument("--run-zig", "-z", action="store_true", help="Tell --run to use a zig solution, if built")
+    parser.add_argument("--opt", "-o", action="store_true", help="Compile zig in fast release mode")
 
     return parser.parse_args()
 
@@ -67,31 +68,11 @@ const aoc = @import("../../aoc_util.zig");
 const Allocator = std.mem.Allocator;
 
 pub fn task1(_: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors!i64 {
-    var total: u64 = 0;
-
-    for (input.items) |line| {
-        var val = try std.fmt.parseInt(u64, line, 10);
-        val /= 3;
-        val -= 2;
-        total += val;
-    }
-
-    return @as(i64, @intCast(total));
+    return 0;
 }
 
 pub fn task2(_: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors!i64 {
-    var total: u64 = 0;
-
-    for (input.items) |line| {
-        var val = try std.fmt.parseInt(u64, line, 10);
-        while (val > 5) {
-            val /= 3;
-            val -= 2;
-            total += val;
-        }
-    }
-
-    return @as(i64, @intCast(total));
+    return 0;
 }
 """
         with file_path.open('w') as f:
@@ -237,8 +218,10 @@ def open_page(url):
     else:
         Popen(f"$BROWSER {url}", shell=True)        
 
-def build_zig(day, year):
+def build_zig(day, year, opt):
     cmd = f"zig build -Dyear={year} -Dday={day}"
+    if opt:
+        cmd += " --release=fast"
     res = Popen(cmd, shell=True)
     res.wait()
     return res.returncode == 0
@@ -259,7 +242,7 @@ def main():
     elif args.build:
         if args.day == None:
             raise ArgumentError("Argument 'build' requires --day N argument")
-        build_zig(args.day, args.year)
+        build_zig(args.day, args.year, args.opt)
     elif args.run:
         if args.day == None:
             raise ArgumentError("Argument 'run' requires --day N argument")

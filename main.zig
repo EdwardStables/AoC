@@ -15,11 +15,11 @@ fn get_tasks(comptime year: u32, comptime day: u32) TaskPair {
     const file = switch (year) {
         2019 => switch (day) {
                     1 => @import("year_2019/day_01/task.zig"),
-                    2 => @import("year_2019/day_02/task.zig"),
+                    //2 => @import("year_2019/day_02/task.zig"),
                     else => @compileError("Unknown day defined.")
                 },
         2024 => switch (day) {
-                    //1 => @import("year_2024/day_01/task.zig"),
+                    1 => @import("year_2024/day_01/task.zig"),
                     else => @compileError("Unknown day defined.")
                 },
         else => @compileError("Unknown year defined.")
