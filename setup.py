@@ -139,7 +139,7 @@ def run_day(day, year, count, zig, fname="data.txt"):
     print(f"Year {year} Day {day} {'(test)' if fname != 'data.txt' else ''}")
 
     if not zig:
-        a,b = get_run_funcs(day, year, count, zig, fname=fname)
+        a,b = get_run_funcs(day, year, count, fname=fname)
         a_res, a_time = a()
         b_res, b_time = b()
     else:
@@ -221,7 +221,7 @@ def open_page(url):
 def build_zig(day, year, opt):
     cmd = f"zig build -Dyear={year} -Dday={day}"
     if opt:
-        cmd += " --release=fast"
+        cmd += " -Doptimize=ReleaseFast"
     res = Popen(cmd, shell=True)
     res.wait()
     return res.returncode == 0

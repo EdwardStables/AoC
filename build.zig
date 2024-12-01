@@ -1,10 +1,12 @@
 const std = @import("std");
 
 pub fn build(b: *std.Build) void {
+    const optimize = b.standardOptimizeOption(.{});
     const exe = b.addExecutable(.{
         .name = "aoc",
         .root_source_file = b.path("main.zig"),
         .target = b.host,
+        .optimize = optimize,
     });
 
     const day = b.option(u32, "day", "Day to build for a given year") orelse 0;
