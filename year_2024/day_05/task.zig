@@ -3,7 +3,7 @@ const aoc = @import("../../aoc_util.zig");
 const Allocator = std.mem.Allocator;
 
 pub fn task1(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors!i64 {
-    var orders = std.AutoHashMap(u32, std.ArrayList(u32)).init(alloc);
+    var orders = std.AutoHashMap(u8, std.ArrayList(u8)).init(alloc);
     defer {
         var it = orders.valueIterator();
         while (it.next()) |val| {
@@ -19,12 +19,12 @@ pub fn task1(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors
             section2 += 1;
             break;
         }
-        const k: u32 = (line[0]-48) * 10 + (line[1]-48);
-        const v: u32 = (line[3]-48) * 10 + (line[4]-48);
+        const k: u8 = (line[0]-48) * 10 + (line[1]-48);
+        const v: u8 = (line[3]-48) * 10 + (line[4]-48);
 
         var key = try orders.getOrPut(k);
         if (!key.found_existing){
-            key.value_ptr.* = try std.ArrayList(u32).initCapacity(alloc, 10);
+            key.value_ptr.* = try std.ArrayList(u8).initCapacity(alloc, 10);
         }
         try key.value_ptr.append(v);
     }
@@ -32,29 +32,15 @@ pub fn task1(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors
     var total: i64 = 0;
     var linelist = try std.ArrayList(u8).initCapacity(alloc, 22);
     for (input.items[section2..]) |line| {
-        var valid = true;
         linelist.clearAndFree();
-        var lineind: u32 = 0;
+        var lineind: u8 = 0;
         while (lineind < line.len) : ({lineind += 3;}) {
             const val: u8 = (line[lineind]-48) * 10 + (line[lineind+1]-48);
             try linelist.append(val);
         }
 
-        linefor: for (linelist.items[1..], 1..) |item, ind| {
-            const banned_list = orders.get(item) orelse continue;
-            for (0..ind) |earlier_ind|{
-                for (banned_list.items) |b| {
-                    if (linelist.items[earlier_ind] == b) {
-                        valid = false;
-                        break :linefor;
-                    }
-                }
-            }
-        }
-        
-        if (valid) {
-            total += linelist.items[linelist.items.len / 2];
-        }
+        if (!std.sort.isSorted(u8, linelist.items, orders, orderingLessThan)) continue;
+        total += linelist.items[linelist.items.len / 2];
     }
     linelist.deinit();
 
@@ -91,8 +77,7 @@ pub fn task2(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors
 
     var total: i64 = 0;
     var linelist = try std.ArrayList(u8).initCapacity(alloc, 22);
-    lineiter: for (input.items[section2..]) |line| {
-        var valid = true;
+    for (input.items[section2..]) |line| {
         linelist.clearAndFree();
         var lineind: u32 = 0;
         while (lineind < line.len) : ({lineind += 3;}) {
@@ -100,30 +85,8 @@ pub fn task2(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors
             try linelist.append(val);
         }
 
-        linefor: for (linelist.items[1..], 1..) |item, ind| {
-            const banned_list = orders.get(item) orelse continue;
-            for (0..ind) |earlier_ind|{
-                for (banned_list.items) |b| {
-                    if (linelist.items[earlier_ind] == b) {
-                        valid = false;
-                        break :linefor;
-                    }
-                }
-            }
-        }
-        
-        //We don't care about valid ones now
-        if (valid) continue :lineiter;
-        
-        //In-place sort
-        std.sort.insertion(
-            u8,
-            linelist.items,
-            orders,
-            orderingLessThan
-        );
-
-
+        if (std.sort.isSorted(u8, linelist.items, orders, orderingLessThan)) continue;
+        std.sort.insertion(u8, linelist.items, orders, orderingLessThan);
         total += linelist.items[linelist.items.len / 2];
     }
 
