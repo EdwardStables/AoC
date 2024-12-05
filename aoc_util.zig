@@ -24,3 +24,33 @@ pub const TaskErrors = error {
     Overflow,
     InvalidCharacter,
 };
+
+
+pub fn Vec2(comptime T: type) type {
+    return struct {
+        const Self= @This();
+        x: T,
+        y: T,
+
+        pub fn addVec(self: Self, other: Self) Self {
+            return .{.x=self.x + other.x, .y=self.y+other.y};
+        }
+        pub fn addX(self: Self, x: T) void {
+            self.x = self.x + x;
+        }
+
+        pub fn addY(self: Self, y: T) void {
+            self.y = self.y + y;
+        }
+
+        pub fn addXY(self: Self, x: T, y: T) void {
+            self.x = self.x + x;
+            self.y = self.y + y;
+        }
+    };
+}
+
+pub fn Vec2Init(comptime T: type, x: T, y: T) Vec2(T) {
+    return Vec2(T){.x = x, .y = y};
+}
+

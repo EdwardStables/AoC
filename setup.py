@@ -63,7 +63,7 @@ def create_template(day: int, year:int, data: str):
         create_zig_template(p, year, day)
 
 def create_zig_template(file_path: Path, year, day):
-        template = """ const std = @import("std");
+        template = """const std = @import("std");
 const aoc = @import("../../aoc_util.zig");
 const Allocator = std.mem.Allocator;
 
@@ -71,7 +71,7 @@ pub fn task1(_: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors!i64
     return 0;
 }
 
-pub fn task2(_: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors!i64 {
+pub fn task2(_: Allocator, _: *std.ArrayList([]const u8)) aoc.TaskErrors!i64 {
     return 0;
 }
 """
