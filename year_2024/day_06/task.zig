@@ -86,8 +86,6 @@ fn checkLoop(
 pub fn task2(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors!i64 {
     const h = input.items.len;
     const w = input.items[0].len;
-    var dir_mask = try alloc.alloc(aoc.Vec2(i16), h*w);
-    defer alloc.free(dir_mask);
     var seen_mask = try alloc.alloc(bool, h*w);
     defer alloc.free(seen_mask);
     for (0..h*w) |i| {seen_mask[i] = false;} //clear mask to avoid realloc
@@ -131,13 +129,55 @@ pub fn task2(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors
         pos = nextpos;
     }
 
+    const threadCount = 12;
+    var threads: [threadCount]std.Thread = undefined;
+    var count: i64 = 0;
+    var index: u32 = 0;
+    var ind_mut: std.Thread.Mutex = .{};
+
+    for (0..threadCount) |i| {
+        threads[i] = try std.Thread.spawn(.{.allocator = alloc}, threadLaunch, .{alloc, start_pos, start_dir, trial_points.items, input, &index, &count, &ind_mut});
+    }
+    for (0..threadCount) |i| {
+        std.Thread.join(threads[i]);
+    }
+
+
+    return count;
+}
+
+fn threadLaunch (
+    alloc: Allocator,
+    startpos: aoc.Vec2(i16),
+    startdir: aoc.Vec2(i16),
+    trialPoints: []aoc.Vec2(i16),
+    input: *std.ArrayList([]const u8),
+    point_index: *u32,
+    count: *i64,
+    mut: *std.Thread.Mutex
+) !void {
+    const h = input.items.len;
+    const w = input.items[0].len;
     var loopcount: i64 = 0;
-    for (trial_points.items) |obstacle| {
+    var dir_mask = try alloc.alloc(aoc.Vec2(i16), h*w);
+    defer alloc.free(dir_mask);
+
+    while (true) {
+        mut.*.lock();
+        if (point_index.* == trialPoints.len) {
+            mut.*.unlock();
+            break;
+        }
+        const obstacle = trialPoints[point_index.*];
+        point_index.* += 1;
+        mut.*.unlock();
+
         for (0..h*w) |i| {dir_mask[i].x = 0; dir_mask[i].y = 0;} //clear mask to avoid realloc
-        if (checkLoop(start_pos, start_dir, dir_mask, input, obstacle)) {
+        if (checkLoop(startpos, startdir, dir_mask, input, obstacle)) {
             loopcount+=1;
         }
     }
-
-    return loopcount;
+    mut.*.lock();
+    count.* += loopcount;
+    mut.*.unlock();
 }

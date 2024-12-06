@@ -23,6 +23,9 @@ pub const TaskErrors = error {
     //Fmt errors
     Overflow,
     InvalidCharacter,
+    //Threading errors,
+    LockedMemoryLimitExceeded,
+    ThreadQuotaExceeded,
 };
 
 
