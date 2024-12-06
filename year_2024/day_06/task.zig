@@ -64,17 +64,15 @@ fn checkLoop(
             return false;
         }
 
-        if (visitedMask[nextpos.toIndex(w)].eq(dir)){
-            return true;
-        }
-
-        visitedMask[nextpos.toIndex(w)] = dir;
-
         //Rotate CW
         if (
             input.items[@intCast(nextpos.y)][@intCast(nextpos.x)] == '#' or
             (nextpos.x == obstacle.x and nextpos.y == obstacle.y)
         ) {
+            if (visitedMask[nextpos.toIndex(w)].eq(dir)){
+                return true;
+            }
+            visitedMask[nextpos.toIndex(w)] = dir;
             const dx = dir.x;
             dir.x = -dir.y;
             dir.y = dx;
