@@ -32,7 +32,7 @@ pub fn task1(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors
     var total: i64 = 0;
     var linelist = try std.ArrayList(u8).initCapacity(alloc, 22);
     for (input.items[section2..]) |line| {
-        linelist.clearAndFree();
+        linelist.clearRetainingCapacity();
         var lineind: u8 = 0;
         while (lineind < line.len) : ({lineind += 3;}) {
             const val: u8 = (line[lineind]-48) * 10 + (line[lineind+1]-48);
@@ -78,7 +78,7 @@ pub fn task2(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors
     var total: i64 = 0;
     var linelist = try std.ArrayList(u8).initCapacity(alloc, 22);
     for (input.items[section2..]) |line| {
-        linelist.clearAndFree();
+        linelist.clearRetainingCapacity();
         var lineind: u32 = 0;
         while (lineind < line.len) : ({lineind += 3;}) {
             const val: u8 = (line[lineind]-48) * 10 + (line[lineind+1]-48);
