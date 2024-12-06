@@ -32,6 +32,13 @@ pub fn Vec2(comptime T: type) type {
         x: T,
         y: T,
 
+        pub fn toIndex(self: Self, width: usize) usize {
+            return @as(usize,@intCast(self.y))*width + @as(usize,@intCast(self.x));
+        }        
+
+        pub fn eq(self: Self, other: Self) bool {
+            return self.x == other.x and self.y == other.y;
+        }
         pub fn addVec(self: Self, other: Self) Self {
             return .{.x=self.x + other.x, .y=self.y+other.y};
         }
