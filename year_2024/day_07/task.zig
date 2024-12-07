@@ -2,27 +2,36 @@ const std = @import("std");
 const aoc = @import("../../aoc_util.zig");
 const Allocator = std.mem.Allocator;
 
-fn calcRecursive(input: []i64, value: i64, target: i64, concat: bool) bool {
-    if (value > target) return false;
+const ops = enum {add, mul, cat};
 
+fn calcRecursive(input: []i64, target: i64, concat: bool) bool {
     if (input.len == 0) {
-        if (value == target) return true;
+        if (target == 0) return true;
         return false;
     }
-    //Add
-    var next_value = value + input[0];
-    if (calcRecursive(input[1..], next_value, target, concat)) return true;
 
-    next_value = value * input[0];
-    if (calcRecursive(input[1..], next_value, target, concat)) return true;
+    const last = input.len-1;
+    
+    const addtarget = target - input[last];
+    if (calcRecursive(input[0..last], addtarget, concat)) { return true; }
+
+    const multarget = @divTrunc(target, input[last]);
+    if (multarget * input[last] == target) {
+        if (calcRecursive(input[0..last], multarget, concat)) { return true; }
+    }
+
 
     if (concat) {
-        var mult: i64 = 10;
-        while (input[0]>=mult) {
-            mult *= 10;
+        var cattarget = target;
+        var value = input[last];
+        while (value>0) {
+            const valrem = @mod(value, 10);
+            const targetrem = @mod(cattarget, 10);
+            if (valrem != targetrem) return false;
+            value = @divFloor(value, 10);
+            cattarget = @divFloor(cattarget, 10);
         }
-        next_value = value * mult + input[0];
-        if (calcRecursive(input[1..], next_value, target, concat)) return true;
+        if (calcRecursive(input[0..last], cattarget, concat)) { return true; }
     }
 
     return false;
@@ -47,7 +56,7 @@ pub fn run(input: *std.ArrayList([]const u8), concat: bool) aoc.TaskErrors!i64 {
         }
 
         ind -= 2; //Length of local array
-        if (calcRecursive(factors[1..ind], factors[0], target, concat)) total += target;
+        if (calcRecursive(factors[0..ind], target, concat)) total += target;
     }
 
 
