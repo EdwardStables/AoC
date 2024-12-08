@@ -37,7 +37,11 @@ pub fn Vec2(comptime T: type) type {
 
         pub fn toIndex(self: Self, width: usize) usize {
             return @as(usize,@intCast(self.y))*width + @as(usize,@intCast(self.x));
-        }        
+        }
+
+        pub fn inBounds(self: Self, tl: Self, br: Self) bool {
+            return self.x >= tl.x and self.y >= tl.y and self.x < br.x and self.y < br.y;
+        }
 
         pub fn eq(self: Self, other: Self) bool {
             return self.x == other.x and self.y == other.y;
