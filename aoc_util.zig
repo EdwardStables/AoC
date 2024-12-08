@@ -68,3 +68,7 @@ pub fn Vec2Init(comptime T: type, x: T, y: T) Vec2(T) {
     return Vec2(T){.x = x, .y = y};
 }
 
+pub fn Vec2Zero(comptime T: type) Vec2(T) {
+    return Vec2(T){.x = @intCast(0), .y = @intCast(0)};
+}
+
