@@ -19,15 +19,16 @@ fn get_tasks(comptime year: u32, comptime day: u32) TaskPair {
                     else => @compileError("Unknown day defined.")
                 },
         2024 => switch (day) {
-                    1 => @import("year_2024/day_01/task.zig"),
-                    2 => @import("year_2024/day_02/task.zig"),
-                    3 => @import("year_2024/day_03/task.zig"),
-                    4 => @import("year_2024/day_04/task.zig"),
-                    5 => @import("year_2024/day_05/task.zig"),
-                    6 => @import("year_2024/day_06/task.zig"),
-                    7 => @import("year_2024/day_07/task.zig"),
-                    8 => @import("year_2024/day_08/task.zig"),
-                    9 => @import("year_2024/day_09/task.zig"),
+                    1  => @import("year_2024/day_01/task.zig"),
+                    2  => @import("year_2024/day_02/task.zig"),
+                    3  => @import("year_2024/day_03/task.zig"),
+                    4  => @import("year_2024/day_04/task.zig"),
+                    5  => @import("year_2024/day_05/task.zig"),
+                    6  => @import("year_2024/day_06/task.zig"),
+                    7  => @import("year_2024/day_07/task.zig"),
+                    8  => @import("year_2024/day_08/task.zig"),
+                    9  => @import("year_2024/day_09/task.zig"),
+                    10 => @import("year_2024/day_10/task.zig"),
                     else => @compileError("Unknown day defined.")
                 },
         else => @compileError("Unknown year defined.")
