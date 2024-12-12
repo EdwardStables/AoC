@@ -82,29 +82,27 @@ fn perimiter(start: aoc.Vec2(i32), input: *std.ArrayList([]const u8)) i64 {
 
     var pos = start;
     const dirs = aoc.offsets(i32);
-    var di: i8 = 2;
+    var di: i8 = 0;
 
     while (true) {
         for (1..5) |offset| {
-            const test_index: i8 = @mod(di + @as(i8, @intCast(offset)), 4);
+            const test_index: i8 = @mod(di + 2 + @as(i8, @intCast(offset)), 4);
             const test_dir = dirs[@intCast(test_index)];
             const test_pos = pos.addVec(test_dir);
-            const next_di = @mod(test_index + 2, 4);
             if (!test_pos.inBounds(aoc.Vec2Zero(i32), i32size)) continue;
             if (input.items[@intCast(test_pos.y)][@intCast(test_pos.x)] != target) continue;
 
-            if (next_di != di){
-                direction_changes += 1;
-            }
-            if (test_index == di){
-                direction_changes += 1;
-            }
             pos = test_pos;
-            di = next_di;
+            if (test_index != di) {
+                const inc: i64 = if (offset == 4) 2 else 1;
+                direction_changes += inc;
+
+            }
+            di = test_index;
             
             break;
         }
-        if (pos.eq(start) and di == 0) direction_changes += 1;
+        if (pos.eq(start) and di == 2) direction_changes += 1;
         if (pos.eq(start)) return direction_changes;
     }
     unreachable;
