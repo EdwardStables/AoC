@@ -52,7 +52,14 @@ pub fn task1(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors
     return total;
 }
 
-fn floodArea(queue: *std.ArrayList(aoc.Vec2(i32)), input: *std.ArrayList([]const u8), mask: []bool) !i64 {
+const Segment = struct {
+    start: aoc.Vec2(i32),
+    end: aoc.Vec2(i32),
+    side: u8,
+    merged: bool = false,
+};
+
+fn floodArea(queue: *std.ArrayList(aoc.Vec2(i32)), input: *std.ArrayList([]const u8), mask: []bool, edge_segments: *std.ArrayList(Segment)) !i64 {
     const size = aoc.Vec2Init(usize, input.items[0].len, input.items.len);
     const i32size = aoc.Vec2Init(i32, @intCast(input.items[0].len), @intCast(input.items.len));
     const target = input.items[@intCast(queue.items[0].y)][@intCast(queue.items[0].x)];
@@ -62,10 +69,12 @@ fn floodArea(queue: *std.ArrayList(aoc.Vec2(i32)), input: *std.ArrayList([]const
         const next = queue.pop();
         if (mask[next.toIndex(size.x)]) continue;
         area += 1;
-        for (aoc.offsets(i32)) |offs| {
+        for (aoc.offsets(i32), 0..) |offs, edge| {
             const adj = next.addVec(offs);
-            if (!adj.inBounds(aoc.Vec2Zero(i32), i32size)) continue;
-            if (input.items[@intCast(adj.y)][@intCast(adj.x)] != target) continue;
+            if (!adj.inBounds(aoc.Vec2Zero(i32), i32size) or input.items[@intCast(adj.y)][@intCast(adj.x)] != target) {
+                try edge_segments.append(.{ .start = adj, .end = adj , .side = @intCast(edge) });
+                continue;
+            }
             if (mask[adj.toIndex(size.x)]) continue;
             try queue.append(adj);
         }
@@ -75,37 +84,38 @@ fn floodArea(queue: *std.ArrayList(aoc.Vec2(i32)), input: *std.ArrayList([]const
     return area;
 }
 
-fn perimiter(start: aoc.Vec2(i32), input: *std.ArrayList([]const u8)) i64 {
-    const i32size = aoc.Vec2Init(i32, @intCast(input.items[0].len), @intCast(input.items.len));
-    const target = input.items[@intCast(start.y)][@intCast(start.x)];
-    var direction_changes: i64 = 1;
+fn perimiter(edge_segments: *std.ArrayList(Segment)) i64 {
+    var merge_count: i64 = 0;
+    var changed = true;
+    while (changed) {
+        changed = false;
+        for (edge_segments.items, 0..) |to_merge, merge_index| {
+            if (to_merge.merged) continue;
+            for (edge_segments.items, 0..) |to_receive, receive_index| {
+                if (merge_index == receive_index) continue;
+                if (to_receive.merged) continue;
+                if (to_merge.side != to_receive.side) continue;
+                if (to_merge.side % 2 == 1) { //H
+                    if (to_merge.end.y != to_receive.end.y) continue;
+                    if (to_merge.start.x != to_receive.end.x + 1) continue;
 
-    var pos = start;
-    const dirs = aoc.offsets(i32);
-    var di: i8 = 0;
+                    edge_segments.items[receive_index].end.x = to_merge.end.x;
+                    edge_segments.items[merge_index].merged = true;
+                    merge_count += 1;
 
-    while (true) {
-        for (1..5) |offset| {
-            const test_index: i8 = @mod(di + 2 + @as(i8, @intCast(offset)), 4);
-            const test_dir = dirs[@intCast(test_index)];
-            const test_pos = pos.addVec(test_dir);
-            if (!test_pos.inBounds(aoc.Vec2Zero(i32), i32size)) continue;
-            if (input.items[@intCast(test_pos.y)][@intCast(test_pos.x)] != target) continue;
+                } else { //V
+                    if (to_merge.end.x != to_receive.end.x) continue;
+                    if (to_merge.start.y != to_receive.end.y + 1) continue;
 
-            pos = test_pos;
-            if (test_index != di) {
-                const inc: i64 = if (offset == 4) 2 else 1;
-                direction_changes += inc;
-
+                    edge_segments.items[receive_index].end.y = to_merge.end.y;
+                    edge_segments.items[merge_index].merged = true;
+                    merge_count += 1;
+                }
             }
-            di = test_index;
-            
-            break;
         }
-        if (pos.eq(start) and di == 2) direction_changes += 1;
-        if (pos.eq(start)) return direction_changes;
     }
-    unreachable;
+
+    return @as(i64, @intCast(edge_segments.items.len)) - merge_count;
 }
 
 pub fn task2(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors!i64 {
@@ -114,6 +124,8 @@ pub fn task2(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors
     defer alloc.free(mask);
     var queue = std.ArrayList(aoc.Vec2(i32)).init(alloc);
     defer queue.deinit();
+    var edge_segments = std.ArrayList(Segment).init(alloc);
+    defer edge_segments.deinit();
 
     for (0..mask.len) |i| mask[i] = false;
 
@@ -124,18 +136,17 @@ pub fn task2(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors
             if (mask[pos.toIndex(size.x)]) continue;
             queue.clearRetainingCapacity();
             try queue.append(pos);
-            const area = try floodArea(&queue, input, mask);
+            const area = try floodArea(&queue, input, mask, &edge_segments);
             if (area < 3) {
                 const score = area * 4;
                 total += score;
-                std.debug.print("{d},{d} {d}x{d}={d}\n", .{pos.x, pos.y, area, 4, score} );
             } else 
             {
-                const peri = perimiter(pos, input);
+                const peri = perimiter(&edge_segments);
                 const score = area * peri;
-                std.debug.print("{d},{d} {d}x{d}={d}\n", .{pos.x, pos.y, area, peri, score} );
                 total += score;
             }
+            edge_segments.clearRetainingCapacity();
         }
     }
 
