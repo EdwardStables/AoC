@@ -28,10 +28,19 @@ pub const TaskErrors = error {
     ThreadQuotaExceeded,
 };
 
+//Ordering matters
+pub fn offsets(comptime T: type) [4]Vec2(T) {
+    return .{
+        Vec2Init(T, 1, 0),
+        Vec2Init(T, 0, 1),
+        Vec2Init(T, -1, 0),
+        Vec2Init(T, 0, -1),
+    };
+}
 
 pub fn Vec2(comptime T: type) type {
     return struct {
-        const Self= @This();
+        const Self = @This();
         x: T,
         y: T,
 
