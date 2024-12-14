@@ -3,12 +3,12 @@ const aoc = @import("../../aoc_util.zig");
 const Allocator = std.mem.Allocator;
 
 const Game = struct {
-    ax: u32,
-    ay: u32,
-    bx: u32,
-    by: u32,
-    tx: u32,
-    ty: u32,
+    ax: i64,
+    ay: i64,
+    bx: i64,
+    by: i64,
+    tx: i64,
+    ty: i64,
 };
 
 fn getGame(input: *std.ArrayList([]const u8), line: u32) Game {
@@ -47,36 +47,45 @@ pub fn task1(_: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors!i64
     while (line < input.items.len) : (line += 4) {
         const game = getGame(input, line);
 
-        var found_sln = false;
-        var best_cost: i64 = 0;
-        var pa_max = @divTrunc(game.tx, game.ax)+1;
-        var pb_max = @divTrunc(game.tx, game.bx)+1;
-        if (pa_max > 100) pa_max = 100;
-        if (pb_max > 100) pb_max = 100;
+        const det = @as(f32, @floatFromInt((game.by*game.ax) - (game.bx*game.ay)));
+        if (det == 0) continue;
 
-        for (0..pa_max) |pa| {
-            for (0..pb_max) |pb| {
-                const cost: i64 = @intCast(3*pa + pb);
-                if (found_sln and best_cost < cost) break;
-                const xres = pa*game.ax + pb*game.bx;
-                const yres = pa*game.ay + pb*game.by;
-                if (xres == game.tx and yres == game.ty) {
-                    if (found_sln == false) {
-                        found_sln = true;
-                        best_cost = cost;
-                    } else {
-                        if (cost < best_cost) {
-                            best_cost = cost;
-                        }
-                    }
-                }
-            }
-        }
-        total += best_cost;
+        const pa = @as(f32, @floatFromInt((game.by*game.tx) - (game.bx*game.ty))) / det;
+        const pb = @as(f32, @floatFromInt((game.ax*game.ty) - (game.ay*game.tx))) / det;
+
+        if (@floor(pa) != pa) continue;
+        if (@floor(pb) != pb) continue;
+        if (pa > 100 or pb > 100) continue;
+
+        total += @intFromFloat((3*pa)+pb);
     }
     return total;
 }
 
-pub fn task2(_: Allocator, _: *std.ArrayList([]const u8)) aoc.TaskErrors!i64 {
-    return 0;
+pub fn task2(_: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors!i64 {
+    var total: i64 = 0;
+    var line: u32 = 0;
+    const offs = 10000000000000;
+    while (line < input.items.len) : (line += 4) {
+        var game = getGame(input, line);
+        game.tx += offs;
+        game.ty += offs;
+
+        const det = (game.by*game.ax) - (game.bx*game.ay);
+        if (det == 0) continue;
+
+        const pa = @divFloor((game.by*game.tx) - (game.bx*game.ty), det);
+        const pb = @divFloor((game.ax*game.ty) - (game.ay*game.tx), det);
+
+        if (pa < 0) continue;
+        if (pb < 0) continue;
+
+        const rx = pa*game.ax + pb*game.bx;
+        const ry = pa*game.ay + pb*game.by;
+        if (game.tx != rx) continue;
+        if (game.ty != ry) continue;
+
+        total += (3*pa)+pb;
+    }
+    return total;
 }
