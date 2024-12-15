@@ -70,6 +70,15 @@ pub fn Vec2(comptime T: type) type {
             self.x = self.x + x;
             self.y = self.y + y;
         }
+
+        pub fn scale(self: Self, s: T) Vec2(T) {
+            return .{.x = s*self.x, .y = s*self.y};
+        }
+
+        //TODO only works for ints
+        pub fn as(self: Self, T2: type) Vec2(T2) {
+            return .{.x = @as(T2,@intCast(self.x)), .y = @as(T2,@intCast(self.y))};
+        }
     };
 }
 
