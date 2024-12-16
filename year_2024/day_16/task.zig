@@ -20,55 +20,36 @@ fn printgrid(size: aoc.Vec2(usize), grid: []i32) void {
     std.debug.print("\n", .{});
 }
 
-pub fn dfs(lastdir: aoc.Vec2(i32), grid: []i32, pos: aoc.Vec2(usize), size: aoc.Vec2(usize)) i64 {
-    std.debug.print("{d},{d}\n", .{pos.x,pos.y});
+pub fn dfs(cost_in: i64, lastdir: aoc.Vec2(i32), grid: []i32, pos: aoc.Vec2(usize), size: aoc.Vec2(usize)) void {
     const val = grid[pos.toIndex(size.x)];
-    //if (val == 0) printgrid(size, grid);
-    if (val >= 0) return val;
+    if (val >= 0 and val <= cost_in) return;
     if (val == -1) unreachable;
 
     //On current path, not resolved
-    grid[pos.toIndex(size.x)] = -3;
+    grid[pos.toIndex(size.x)] = @intCast(cost_in);
 
-    var min: i64 = std.math.maxInt(i32);
     const dirs = aoc.offsets(i32);
     for (dirs, 0..) |dir, i| {
         const next = pos.as(i32).addVec(dir).as(usize);
         if (grid[next.toIndex(size.x)] == -1) continue;
-        if (grid[next.toIndex(size.x)] == -3) continue;
+        if (aoc.offsets(i32)[(i+2)%4].eq(lastdir)) continue;
 
-        var cost: i64 = if (lastdir.eq(dir)) 0 else 1000;
-        if (aoc.offsets(i32)[(i+2)%4].eq(lastdir)) cost += 1000;
-
+        var cost = cost_in;
+        cost += if (lastdir.eq(dir)) 0 else 1000;
         cost += 1;
 
-        const ret = dfs(dir, grid, next, size);
-
-        if (ret == -2) continue;
-
-        cost = ret + cost;
-        if (cost < min) {
-            min = cost;
-        }
+        dfs(cost, dir, grid, next, size);
     }
-
-    //Reset to unexplored
-    grid[pos.toIndex(size.x)] = -2;
-
-    //if no result just return
-    if (min == std.math.maxInt(i32)) return -2;
-
-    //otherwise set the explored value
-    grid[pos.toIndex(size.x)] = @intCast(min);
 
     completed += 1;
 
-    return min;
+    return;
 }
 
 pub fn task1(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors!i64 {
     const size = aoc.Vec2Init(usize, input.items[0].len, input.items.len);
     var start = aoc.Vec2Zero(usize);
+    var end = aoc.Vec2Zero(usize);
     var grid = try alloc.alloc(i32, size.x*size.y);
     defer alloc.free(grid);
 
@@ -79,18 +60,19 @@ pub fn task1(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors
             if (char == 'S') {
                 start = p;
             }
-            if (char == '.' or char == 'S') {
+            if (char == '.' or char == 'S' or char == 'E') {
                 total += 1;
-                grid[p.toIndex(size.x)] = -2;
+                grid[p.toIndex(size.x)] = std.math.maxInt(i32);
             }
             if (char == 'E') {
-                total += 1;
-                grid[p.toIndex(size.x)] = 0;
+                end = p;
             }
         }
     }
 
-    return dfs(aoc.Vec2Init(i32, 1, 0), grid, start, size) - 1000;
+    dfs(0, aoc.Vec2Init(i32, 1, 0), grid, start, size);
+
+    return @intCast(grid[end.toIndex(size.x)]);
 }
 
 pub fn task2(_: Allocator, _: *std.ArrayList([]const u8)) aoc.TaskErrors!i64 {
