@@ -26,6 +26,8 @@ pub const TaskErrors = error {
     //Threading errors,
     LockedMemoryLimitExceeded,
     ThreadQuotaExceeded,
+    //Priority Queue
+    ElementNotFound,
 };
 
 //Ordering matters
