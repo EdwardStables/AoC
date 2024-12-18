@@ -81,6 +81,14 @@ pub fn Vec2(comptime T: type) type {
         pub fn as(self: Self, T2: type) Vec2(T2) {
             return .{.x = @as(T2,@intCast(self.x)), .y = @as(T2,@intCast(self.y))};
         }
+
+        pub fn rotate_left(self: Self) Vec2(T) {
+            return .{.x=-self.y,.y=self.x};
+        }
+
+        pub fn rotate_right(self: Self) Vec2(T) {
+            return .{.x=self.y,.y=-self.x};
+        }
     };
 }
 
