@@ -96,6 +96,13 @@ pub fn Vec2(comptime T: type) type {
         pub fn rotate_right(self: Self) Vec2(T) {
             return .{.x=self.y,.y=-self.x};
         }
+
+        pub fn manhatten(self: Self, other: Self) usize {
+            const xdist = if (self.x > other.x) self.x - other.x else other.x - self.x;
+            const ydist = if (self.y > other.y) self.y - other.y else other.y - self.y;
+            const result = xdist + ydist;
+            return result;
+        }
     };
 }
 

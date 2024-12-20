@@ -101,6 +101,97 @@ pub fn task1(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors
     return total;
 }
 
-pub fn task2(_: Allocator, _: *std.ArrayList([]const u8)) aoc.TaskErrors!i64 {
-    return 0;
+pub fn task2(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors!i64 {
+    const size = aoc.Vec2Init(usize, input.items[0].len, input.items.len);
+    const nodecount = size.x*size.y;
+    var start = aoc.Vec2Zero(usize);
+    var end = aoc.Vec2Zero(usize);
+    var grid = try alloc.alloc(cell, size.x*size.y);
+    defer alloc.free(grid);
+
+    for (input.items, 0..) |line, y| {
+        for (line, 0..) |char, x| {
+            const p = aoc.Vec2Init(usize, x, y);
+            if (char == '#') {
+                grid[p.toIndex(size.x)] = cell.wall;
+            }
+            else {
+                if (char == 'S') {
+                    start = p;
+                }
+                if (char == 'E') {
+                    end = p;
+                }
+                grid[p.toIndex(size.x)] = cell.clear;
+            }
+        }
+    }
+
+    grid[start.toIndex(size.x)] = cell.visited;
+
+    const adj = try alloc.alloc(?u32, nodecount*nodecount);
+    defer alloc.free(adj);
+    for (0..adj.len) |a| adj[a] = null;
+
+    for (0..size.y) |y| {
+        for (0..size.x) |x| {
+            const p = aoc.Vec2Init(usize, x, y).as(i32);
+            const pi = p.toIndex(size.x);
+            if (y > 0) {
+                const ni = p.addVec(aoc.up(i32)).toIndex(size.x);
+                if (grid[ni] != cell.wall) adj[pi*nodecount + ni] = 1;
+            }
+            if (y < size.y-1) {
+                const ni = p.addVec(aoc.dn(i32)).toIndex(size.x);
+                if (grid[ni] != cell.wall) adj[pi*nodecount + ni] = 1;
+            }
+            if (x > 0) {
+                const ni = p.addVec(aoc.lt(i32)).toIndex(size.x);
+                if (grid[ni] != cell.wall) adj[pi*nodecount + ni] = 1;
+            }
+            if (x < size.x-1) {
+                const ni = p.addVec(aoc.rt(i32)).toIndex(size.x);
+                if (grid[ni] != cell.wall) adj[pi*nodecount + ni] = 1;
+            }
+        }
+    }
+
+    const dijk_end = try aoc.dijkstra(alloc, end.toIndex(size.x), nodecount, adj);
+    const end_dist = dijk_end.dist;
+    const end_prev = dijk_end.prev;
+    defer alloc.free(end_dist);
+    defer alloc.free(end_prev);
+
+    const dijk_start = try aoc.dijkstra(alloc, start.toIndex(size.x), nodecount, adj);
+    const start_dist = dijk_start.dist;
+    const start_prev = dijk_start.prev;
+    defer alloc.free(start_dist);
+    defer alloc.free(start_prev);
+
+    const base_cost: i64 = @intCast(start_dist[end.toIndex(size.x)]);
+    const skipsize: usize = 20;
+
+    var costs = std.AutoHashMap(pair, i32).init(alloc);
+    defer costs.deinit();
+
+    for (0..nodecount) |fromind| {
+        const frompos = aoc.Vec2FromIndex(usize, fromind, size.x);
+        const fromcost = start_dist[fromind];
+        if (grid[fromind]==cell.wall) continue;
+        for (0..nodecount) |toind| {
+            if (fromind == toind) continue;
+            if (grid[toind]==cell.wall) continue;
+            const topos = aoc.Vec2FromIndex(usize, toind, size.x);
+            const tocost = end_dist[toind];
+            const thisskipsize = frompos.manhatten(topos);
+            if (thisskipsize > skipsize) continue;
+            const cost = fromcost + thisskipsize + tocost;
+
+            if (cost <= base_cost - 100){
+                try costs.put(.{ .from = @intCast(fromind), .to = @intCast(toind) }, @intCast(base_cost-@as(i64,@intCast(cost))));
+            }
+        }
+    }
+
+    return costs.count();
 }
