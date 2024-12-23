@@ -94,8 +94,7 @@ pub fn task2(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors
     var max_profit: ?u64 = null;
     var best_hist: ?hist = null;
 
-    for (all_changes.items, 0..) |c, progress| {
-        std.debug.print("Line {d}\n", .{progress});
+    for (all_changes.items) |c| {
         var kit = c.keyIterator();
         while (kit.next()) |k| {
             if (profits.contains(k.*)) continue;
@@ -104,7 +103,6 @@ pub fn task2(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors
             if (p > (max_profit orelse 0)) {
                 max_profit = p;
                 best_hist = k.*;
-                std.debug.print("Best so far {d} with {d},{d},{d},{d}\n", .{ max_profit.?, best_hist.?._4, best_hist.?._3, best_hist.?._2, best_hist.?._1 });
             }
         }
     }
