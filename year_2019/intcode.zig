@@ -22,6 +22,8 @@ pub const IntCode = struct {
     input_read_index: usize = 0,
     output_read_index: usize = 0,
 
+    ip: u32 = 0,
+
     pub fn init(alloc: std.mem.Allocator, input: []const u8) !IntCode {
         var mem = std.ArrayList(i32).init(alloc);
         try IntCode.createMemMap(&mem, input);
@@ -45,6 +47,12 @@ pub const IntCode = struct {
         while (si.next()) |token| {
             try self.mem.append(try std.fmt.parseInt(i32, token, 10));
         }
+        self.input.clearRetainingCapacity();
+        self.output.clearRetainingCapacity();
+        self.input_read_index = 0;
+        self.output_read_index = 0;
+
+        self.ip = 0;
     }
 
     fn createMemMap(mem: *std.ArrayList(i32), input: []const u8) !void {
@@ -89,70 +97,99 @@ pub const IntCode = struct {
     }
 
     pub fn getOutput(self: *IntCode) ?i32 {
-        defer self.output_read_index+=1;
-        return if (self.output_read_index < self.output.items.len) self.output.items[self.output_read_index] else null;
+        if (self.output_read_index < self.output.items.len) {
+            defer self.output_read_index+=1;
+            return self.output.items[self.output_read_index];
+        }
+        else {
+            return null;
+        }
+    }
+
+    fn loop(self: *IntCode, debug: bool) ?bool {
+        var m = self.mem.items;
+        const ip = self.ip;
+        const opcode: Opcode = self.getOpcode(ip);
+        if (debug) {
+            std.debug.print("IP: {d} ", .{ip});
+            std.debug.print("Opcode: {s} ", .{@tagName(opcode)});
+        }
+
+        if (opcode == .END) return true;
+
+        const out: u32 = @intCast(switch(opcode) {
+            .ADD => m[ip + 3],
+            .MULTIPLY => m[ip + 3],
+            .INPUT => m[ip + 1],
+            .LESS_THAN => m[ip + 3],
+            .EQUALS => m[ip + 3],
+            else => 0
+        });
+
+        var jumped = false;
+        switch(opcode) {
+            .ADD => m[out] = self.getOperand(ip,0) + self.getOperand(ip,1),
+            .MULTIPLY => m[out] = self.getOperand(ip,0) * self.getOperand(ip,1),
+            .INPUT => m[out] = self.getInput(),
+            .OUTPUT => self.pushOutput(self.getOperand(ip,0)) catch {
+                std.debug.print("IP: {d} - Sending OUTPUT failed \n", .{ip});
+                return false;
+            },
+            .J_IF_TRUE => if (self.getOperand(ip,0) != 0) {self.ip = @intCast(self.getOperand(ip, 1)); jumped=true;},
+            .J_IF_FALSE => if (self.getOperand(ip,0) == 0) {self.ip = @intCast(self.getOperand(ip, 1)); jumped=true;},
+            .LESS_THAN => m[out] = if (self.getOperand(ip,0) < self.getOperand(ip,1)) 1 else 0,
+            .EQUALS => m[out] = if (self.getOperand(ip,0) == self.getOperand(ip,1)) 1 else 0,
+            .END => {//Captured earlier
+                std.debug.print("IP: {d} - Seen END in opcode switch\n", .{ip});
+                return false;
+            },
+            else => {
+                std.debug.print("IP: {d} - Invalid Opcode {d}\n", .{ip, m[ip]});
+                return false;
+            }
+        }
+
+        if (debug) std.debug.print("\n", .{});
+
+        self.ip += switch(opcode) {
+            .ADD => 4,
+            .MULTIPLY => 4,
+            .INPUT => 2,
+            .OUTPUT => 2,
+            .J_IF_TRUE => if (jumped) 0 else 3,
+            .J_IF_FALSE => if (jumped) 0 else 3,
+            .LESS_THAN => 4,
+            .EQUALS => 4,
+            .END => 1, 
+            else => {
+                std.debug.print("IP: {d} - Invalid Opcode {d}\n", .{ip, m[ip]});
+                return false;
+            }
+        };
+
+        return null;
+    }
+
+    pub fn executeUntilOutput(self: *IntCode, debug: bool) ?i32 {
+        while (true) {
+            const res = self.loop(debug);
+            if (res != null) break;
+
+            const out = self.getOutput();
+            if (out != null) {
+                return out.?;
+            }
+        }
+
+        return null;
     }
 
     pub fn execute(self: *IntCode, debug: bool) bool {
-        var ip: u32 = 0;
-        var m = self.mem.items;
         while (true) {
-            const opcode: Opcode = self.getOpcode(ip);
-
-            if (opcode == .END) break;
-
-            const out: u32 = @intCast(switch(opcode) {
-                .ADD => m[ip + 3],
-                .MULTIPLY => m[ip + 3],
-                .INPUT => m[ip + 1],
-                .LESS_THAN => m[ip + 3],
-                .EQUALS => m[ip + 3],
-                else => 0
-            });
-
-            var jumped = false;
-            switch(opcode) {
-                .ADD => m[out] = self.getOperand(ip,0) + self.getOperand(ip,1),
-                .MULTIPLY => m[out] = self.getOperand(ip,0) * self.getOperand(ip,1),
-                .INPUT => m[out] = self.getInput(),
-                .OUTPUT => self.pushOutput(self.getOperand(ip,0)) catch {
-                    std.debug.print("IP: {d} - Sending OUTPUT failed \n", .{ip});
-                    return false;
-                },
-                .J_IF_TRUE => if (self.getOperand(ip,0) != 0) {ip = @intCast(self.getOperand(ip, 1)); jumped=true;},
-                .J_IF_FALSE => if (self.getOperand(ip,0) == 0) {ip = @intCast(self.getOperand(ip, 1)); jumped=true;},
-                .LESS_THAN => m[out] = if (self.getOperand(ip,0) < self.getOperand(ip,1)) 1 else 0,
-                .EQUALS => m[out] = if (self.getOperand(ip,0) == self.getOperand(ip,1)) 1 else 0,
-                .END => {//Captured earlier
-                    std.debug.print("IP: {d} - Seen END in opcode switch\n", .{ip});
-                    return false;
-                },
-                else => {
-                    std.debug.print("IP: {d} - Invalid Opcode {d}\n", .{ip, m[ip]});
-                    return false;
-                }
-            }
-
-            if (debug)
-                std.debug.print("IP: {d} - {s} {d} {d} -> {d} ({d})\n", .{ip, @tagName(opcode), self.getOperand(ip,0), self.getOperand(ip,1), out, m[out]});
-
-            ip += switch(opcode) {
-                .ADD => 4,
-                .MULTIPLY => 4,
-                .INPUT => 2,
-                .OUTPUT => 2,
-                .J_IF_TRUE => if (jumped) 0 else 3,
-                .J_IF_FALSE => if (jumped) 0 else 3,
-                .LESS_THAN => 4,
-                .EQUALS => 4,
-                .END => 1, 
-                else => {
-                    std.debug.print("IP: {d} - Invalid Opcode {d}\n", .{ip, m[ip]});
-                    return false;
-                }
-            };
+            const res = self.loop(debug);
+            if (res == null) continue;
+            return res.?;
         }
-
-        return true;
+        unreachable;
     }
 };
