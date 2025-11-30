@@ -65,7 +65,10 @@ pub fn Vec2(comptime T: type) type {
             return self.x == other.x and self.y == other.y;
         }
         pub fn addVec(self: Self, other: Self) Self {
-            return .{.x=self.x + other.x, .y=self.y+other.y};
+            return .{.x=self.x + other.x, .y=self.y + other.y};
+        }
+        pub fn subVec(self: Self, other: Self) Self {
+            return .{.x=self.x - other.x, .y=self.y - other.y};
         }
         pub fn addX(self: Self, x: T) void {
             self.x = self.x + x;
@@ -102,6 +105,10 @@ pub fn Vec2(comptime T: type) type {
             const ydist = if (self.y > other.y) self.y - other.y else other.y - self.y;
             const result = xdist + ydist;
             return result;
+        }
+
+        pub fn mag2(self: Self) T {
+            return self.x*self.x + self.y*self.y;
         }
     };
 }
