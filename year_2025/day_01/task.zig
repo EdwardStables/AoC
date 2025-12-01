@@ -25,17 +25,16 @@ pub fn task2(_: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors!i64
     var val: i16 = 50;
     var count: i64 = 0;
     for (input.items) |line| {
-        var num = try std.fmt.parseInt(i16, line[1..], 10);
-        const update: i16 = if (line[0] == 'L') -1 else 1;
+        const num = try std.fmt.parseInt(i16, line[1..], 10);
+        const update: i16 = if (line[0] == 'L') -num else num;
         
-        while (num > 0) : (num -= 1) { //it's not dumb if it works
-            val += update;
-            val = @mod(val, 100);
-            if (val == 0) {
-                count += 1;
-            }
-        }
+        //if (val > 0 and val + update <= 0) count += 1;
 
+        if (val > 0 and val+update < 0) count += 1;
+        val += update;
+        count += if (val == 0) 1 else @abs(@divTrunc(val, 100));
+
+        val = @mod(val, 100);
     }
     return count;
 }

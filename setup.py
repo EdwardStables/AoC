@@ -157,9 +157,10 @@ def run_day(day, year, count, zig, fname="data.txt"):
         a_time = float(t1_line[3])
         b_time = float(t2_line[3])
 
-    print(f"a: {a_time:07.3f}ms          {a_res}")
-    print(f"b: {b_time:07.3f}ms          {b_res}")
-    print(f"{count} Run(s)")
+    print(f"a: {a_time:07.3f}ms            {a_res}")
+    print(f"b: {b_time:07.3f}ms            {b_res}")
+    if (count > 0):
+        print(f"Average over {count} runs")
 
 def run_profile(day, year, a_not_b, fname="data.txt"):
     import cProfile
