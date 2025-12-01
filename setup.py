@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from timeit import default_timer as time
 from pathlib import Path
 from argparse import ArgumentError, ArgumentParser

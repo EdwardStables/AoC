@@ -53,6 +53,10 @@ fn get_tasks(comptime year: u32, comptime day: u32) TaskPair {
             23 => @import("year_2024/day_23/task.zig"),
             else => @compileError("Unknown day defined.")
         },
+        2025 => switch (day) {
+            1  => @import("year_2025/day_01/task.zig"),
+            else => @compileError("Unknown day defined.")
+        },
         else => @compileError("Unknown year defined.")
     };
 
@@ -66,10 +70,19 @@ fn read_input(alloc: std.mem.Allocator, output: *std.ArrayList([]const u8), year
     const handle = try std.fs.cwd().openFile(filename, .{});
     defer handle.close();
 
-    while (try handle.reader().readUntilDelimiterOrEofAlloc(alloc, '\n', std.math.maxInt(usize))) |line| {
-        defer alloc.free(line);
-        try output.append(try std.fmt.allocPrint(alloc, "{s}", .{line}));
-    }
+    var buf: [1024*256]u8 = undefined; //TODO this might need to be bigger
+    var reader = std.fs.File.Reader.init(handle, &buf);
+
+    var line_writer = std.Io.Writer.Allocating.init(alloc);
+    defer line_writer.deinit();
+
+    
+    while (reader.interface.streamDelimiter(&line_writer.writer, '\n')) |_| {
+        const line = line_writer.written();
+        try output.append(alloc, try std.fmt.allocPrint(alloc, "{s}", .{line}));
+        line_writer.clearRetainingCapacity();
+        reader.interface.toss(1);
+    } else |err| if (err != error.EndOfStream) return err;
 }
 
 const Options = struct { run_task1: bool = false, run_task2: bool = false, iterations: u32 = 1, test_input: bool = false };
@@ -128,15 +141,14 @@ fn do_run(alloc: std.mem.Allocator, iterations: u64, func: Task, input: *std.Arr
 }
 
 pub fn main() !void {
-    const stdout = std.io.getStdOut().writer();
     const tasks = get_tasks(config.year, config.day);
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
 
     const options = try get_options(gpa.allocator());
 
-    var input = std.ArrayList([]const u8).init(gpa.allocator());
-    defer input.deinit();
+    var input = try std.ArrayList([]const u8).initCapacity(gpa.allocator(), 256);
+    defer input.deinit(gpa.allocator());
 
     try read_input(gpa.allocator(), &input, config.year, config.day, options.test_input);
     defer {
@@ -154,7 +166,11 @@ pub fn main() !void {
     else
         RunResult{ .value = 0, .time = 0.0 };
 
+    var stdout_buf: [256]u8 = undefined;
+    var stdout_writer = std.fs.File.stdout().writer(&stdout_buf);
+    const stdout = &stdout_writer.interface;
     try stdout.print("Run {d} Day {d} {d} Iterations\n", .{ config.year, config.day, options.iterations });
     try stdout.print("1 {s} {d} {e}\n", .{ if (options.run_task1) "Enabled" else "Disabled", t1.value, t1.time });
     try stdout.print("2 {s} {d} {e}\n", .{ if (options.run_task2) "Enabled" else "Disabled", t2.value, t2.time });
+    try stdout.flush();
 }
