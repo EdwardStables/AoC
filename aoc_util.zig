@@ -110,6 +110,39 @@ pub fn Vec2(comptime T: type) type {
         pub fn mag2(self: Self) T {
             return self.x*self.x + self.y*self.y;
         }
+
+        pub fn left(self: Self) ?Vec2(T) {
+            if (self.x > 0) return .{.x=self.x-1, .y=self.y};
+            return null;
+        }
+        pub fn right(self: Self, width: usize) ?Vec2(T) {
+            if (self.x < width-1) return .{.x=self.x+1, .y=self.y};
+            return null;
+        }
+        pub fn up(self: Self) ?Vec2(T) {
+            if (self.y > 0) return .{.x=self.x, .y=self.y-1};
+            return null;
+        }
+        pub fn down(self: Self, height: usize) ?Vec2(T) {
+            if (self.y < height-1) return .{.x=self.x, .y=self.y+1};
+            return null;
+        }
+        pub fn upleft(self: Self) ?Vec2(T) {
+            if (self.y > 0 and self.x > 0) return .{.x=self.x-1, .y=self.y-1};
+            return null;
+        }
+        pub fn upright(self: Self, width: usize) ?Vec2(T) {
+            if (self.y > 0 and self.x < width-1) return .{.x=self.x+1, .y=self.y-1};
+            return null;
+        }
+        pub fn downright(self: Self, width: usize, height: usize) ?Vec2(T) {
+            if (self.y < height-1 and self.x < width-1) return .{.x=self.x+1, .y=self.y+1};
+            return null;
+        }
+        pub fn downleft(self: Self, height: usize) ?Vec2(T) {
+            if (self.y < height-1 and self.x > 0) return .{.x=self.x-1, .y=self.y+1};
+            return null;
+        }
     };
 }
 
