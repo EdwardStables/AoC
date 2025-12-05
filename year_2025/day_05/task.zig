@@ -14,15 +14,15 @@ pub fn task1(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors
             if (c == '-') break i;
         } else unreachable;
 
-        const left:  u64 = try std.fmt.parseInt(u64, line[0..split], 10);
-        const right: u64 = try std.fmt.parseInt(u64, line[split+1..], 10);
+        const left:  u64 = aoc.intParse(u64, line[0..split]);
+        const right: u64 = aoc.intParse(u64, line[split+1..]);
         
         try ranges.append(alloc, .{.x=left,.y=right});
     }
 
     var fresh: i64 = 0;
     for (input.items[range_len+1..]) |line| {
-        const id: u64 = try std.fmt.parseInt(u64, line, 10);
+        const id: u64 = aoc.intParse(u64, line);
         for (ranges.items) |range| {
             if (id >= range.x and id <= range.y) {
                 fresh += 1;
@@ -47,8 +47,8 @@ pub fn task2(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors
             if (c == '-') break i;
         } else unreachable;
 
-        var left:  u64 = try std.fmt.parseInt(u64, line[0..split], 10);
-        var right: u64 = try std.fmt.parseInt(u64, line[split+1..], 10);
+        var left:  u64 = aoc.intParse(u64, line[0..split]);
+        var right: u64 = aoc.intParse(u64, line[split+1..]);
         for (ranges.items, 0..) |r, i| {
             if (!r.valid) continue;
             const range = r.range;

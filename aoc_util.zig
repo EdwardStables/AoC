@@ -210,3 +210,13 @@ pub fn dijkstra(alloc: Allocator, start: usize, size: usize, adjacency: []?u32) 
 
     return .{.dist=dist, .prev=prev};
 }
+
+pub fn intParse(T: type, str: []const u8) T {
+    var ret: T = 0;
+    for (str) |c| {
+        ret *= 10;
+        ret += c - 48;
+    }
+
+    return ret;
+}
