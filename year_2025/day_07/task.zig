@@ -28,9 +28,9 @@ pub fn task1(_: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors!i64
     return count;
 }
 
-pub fn task2(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors!i64 {
-    var beam = try alloc.alloc(u64, input.items[0].len); defer alloc.free(beam);
-    var beam_next = try alloc.alloc(u64, input.items[0].len); defer alloc.free(beam_next);
+pub fn task2(_: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors!i64 {
+    var beam: [142]u64 = undefined;
+    var beam_next: [142]u64 = undefined;
     for (input.items[0], 0..) |c, i| {
         beam[i] = 0;
         beam_next[i] = 0;
