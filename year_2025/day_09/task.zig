@@ -43,6 +43,12 @@ pub fn task2(alloc: Allocator, input: *std.ArrayList([]const u8)) aoc.TaskErrors
         inner: for (squares[i+1..] ) |s2| {
             const size: i64 = @intCast((@abs(s1.x-s2.x)+1) * (@abs(s1.y-s2.y)+1));
             if (size <= largest) continue;
+            for (squares) |p| {
+                if (p.x > @min(s1.x, s2.x) and p.x < @max(s1.x, s2.x) and
+                    p.y > @min(s1.y, s2.y) and p.y < @max(s1.y, s2.y)) {
+                    continue :inner;
+                }
+            }
             for (perimiter.items) |p| {
                 if (p.x > @min(s1.x, s2.x) and p.x < @max(s1.x, s2.x) and
                     p.y > @min(s1.y, s2.y) and p.y < @max(s1.y, s2.y)) {
