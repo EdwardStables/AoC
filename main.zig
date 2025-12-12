@@ -65,6 +65,7 @@ fn get_tasks(comptime year: u32, comptime day: u32) TaskPair {
             9  => @import("year_2025/day_09/task.zig"),
             10 => @import("year_2025/day_10/task.zig"),
             11 => @import("year_2025/day_11/task.zig"),
+            12 => @import("year_2025/day_12/task.zig"),
             else => @compileError("Unknown day defined.")
         },
         else => @compileError("Unknown year defined.")
